@@ -6,7 +6,8 @@
 
 global main "/Users/antoniaaguilera/ConsiliumBots Dropbox/antoniaaguilera@consiliumbots.com/projects/iadb-ccas-costs"
 global pathData "/Users/antoniaaguilera/ConsiliumBots Dropbox/antoniaaguilera@consiliumbots.com/random_data"
-global graphs "/Users/antoniaaguilera/Dropbox/CB/BID-Cost Effective/Cost_Estimation/graphs/"
+global figures "$main/figures"
+global tables "$main/tables"
 global git "/Users/antoniaaguilera/GitHub/iadb-ccas-costs"
 
 * ---- Panel matrícula 2011-2021 ---- *
@@ -103,11 +104,11 @@ local path_sae_2019_vacs = "$pathData/SAE/SAE_2019/A1_Oferta_Establecimientos_et
 local path_sae_2020_vacs = "$pathData/SAE/SAE_2020/A1_Oferta_Establecimientos_etapa_regular_2020_Admision_2021.csv"
 local path_sae_2021_vacs = "$pathData/SAE/SAE_2021/A1_Oferta_Establecimientos_etapa_regular_2021_Admision_2022.csv"
 
-
+import delimited "`path_sae_2021_vacs'", clear
 forvalues year = 2019/2021 {
   import delimited "`path_sae_`year'_vacs'", clear
   //agregar vacantes por niveles
-  collapse (sum) vacs_`year' = vacantes  cupos_`year' = cupos_totales, by(rbd cod_nivel)
+  collapse (sum) vacs_`year' = vacantes  cupos_`year' = cupos_totales (firstnm) cod_jor cod_grado cod_ense con_copago cod_espe , by(rbd cod_nivel)
 
   tempfile sae_`year'
   save `sae_`year'', replace
@@ -128,6 +129,8 @@ tempfile mat_convacs
 save `mat_convacs', replace
 
 duplicates report rbd
+
+
 * ---- Pegar data Value Added ---- *
 use "$main/data/ModelData_SchoolsAll_2021_04_13.dta", clear
 keep School_RBD va2_ave Year
@@ -161,75 +164,236 @@ save "$main/data/for_benefit_estimation.dta", replace
 * -------------------------- *
 use "$main/data/for_benefit_estimation.dta", clear
 sort rbd year
+
 * --- promedio simple --- *
 bys rbd: egen va_mean_simple = mean(va) //promedio simple del VA 2005-2016
 *bys cod_com_rbd year: egen va_mean_com = mean(va) //promedio anual del VA de la comuna
-
+* --- copiar va del 2016 hasta el 2021  --- *
+forvalues x = 2017/2021 {
+  replace va = va[_n-1] if year == `x'
+}
 keep if year>=2018
 sort rbd year
-drop va
+*drop va
+gen va_positivo = (va>0)
 
 * --- comparar los cupos de un año con la matrícula del año siguiente --- *
 bys rbd: gen cupos_prev = cupos[_n-1]
 bys rbd: gen vacs_prev  = vacs[_n-1]
 
 * --- check consistencia --- *
-tab rbd if vacs>cupos //no observations
-tab rbd if matricula>cupos //hay 308 colegios donde pasa
+qui tab rbd if vacs>cupos_prev //hay 98 colegios donde pasa
 return list
-tab rbd if matricula>vacs //hay 611 colegios donde pasa
+qui tab rbd if matricula>cupos_prev //hay 231 colegios donde pasa
+return list
+qui tab rbd if matricula>vacs_prev //hay 586 colegios donde pasa
 return list
 
 * --- para los casos donde la matrícula es más alta que los cupos/vacantes, voy a suponer que no hay vacantes desiertas --- *
 keep if year == 2019 | year == 2020
 
-gen empty_vacs = 0      if matricula>=cupos
-replace empty_vacs = 1  if matricula<cupos
+gen empty_vacs     = 0   if matricula >= cupos_prev
+replace empty_vacs = 1   if matricula <  cupos_prev
 tab empty_vacs
 
-gen n_empty_vacs = 0                   if empty_vacs == 0
-replace n_empty_vacs = matricula-cupos if empty_vacs == 1
+gen n_empty_vacs = 0                             if empty_vacs == 0
+replace n_empty_vacs = (cupos_prev - matricula)  if empty_vacs == 1
+sum n_empty_vacs
 
-gen delta_vacs = matricula-cupos
+gen delta_vacs = cupos_prev-matricula
+sum delta_vacs
 
-stop
-* --- matricula de la comuna --- *
-bys cod_com_rbd year: egen tot_com = mean(mat) //matrícula total de la comuna en un año dado
-gen pc_mat = mat/tot_com //matricula anual como porcentaje de la matrícula total de la comuna en un año dado
-
+gen prop_empty = n_empty_vacs / cupos_prev
+sum prop_empty
 
 
-* ---
-* -
-tw (scatter va_mean_simple vacs if year==2019, mcolor("75 22 199%20")) ///
-   (scatter va_mean_simple vacs if year==2020, mcolor("61 187 171%20")) , ///
-   graphr(fc(white) lcolor(white) ilcolor(white)  lwidth(thick))  ///
+* --- estadistica descriptiva --- *
+
+forvalues x = 2019/2020 {
+  sum matricula if year == `x'
+  local mat_`x'_tot = `r(sum)'
+  local N_`x'_tot =  `r(N)'
+
+  sum delta_vacs if year == `x'
+  local delta_`x'_sum_tot  : di %4.0fc `r(sum)'
+  local delta_`x'_mean_tot : di %4.0fc `r(mean)'
+
+  sum empty_vacs if year == `x'
+  local empty_`x'_sum_tot  : di %4.3fc `r(sum)'
+  local empty_`x'_mean_tot : di %4.3fc `r(mean)'
+
+  sum n_empty_vacs if year == `x'
+  local n_empty_`x'_sum_tot  : di %4.0fc `r(sum)'
+  local n_empty_`x'_mean_tot : di %4.0fc `r(mean)'
+
+  sum prop_empty if year == `x'
+  local prop_empty_`x'_mean_tot : di %4.3f `r(mean)'
+
+  forval y = 0/1 {
+    sum matricula if year == `x' & va_positivo == `y'
+    local mat_`x'_`y' = `r(sum)'
+    local N_`x'_`y'   = `r(N)'
+
+    sum delta_vacs if year == `x' & va_positivo == `y'
+    local delta_`x'_sum_`y'  : di %4.0fc `r(sum)'
+    local delta_`x'_mean_`y' : di %4.0fc `r(mean)'
+
+    sum empty_vacs if year == `x' & va_positivo == `y'
+    local empty_`x'_sum_`y'  : di %4.3fc `r(sum)'
+    local empty_`x'_mean_`y' : di %4.3fc `r(mean)'
+
+    sum n_empty_vacs if year == `x' & va_positivo == `y'
+    local n_empty_`x'_sum_`y'  : di %4.0fc `r(sum)'
+    local n_empty_`x'_mean_`y' : di %4.0fc `r(mean)'
+
+    sum prop_empty if year == `x' & va_positivo == `y'
+    local prop_empty_`x'_mean_`y' : di %4.3f `r(mean)'
+
+  }
+}
+
+sum va
+
+file open tabla1 using "$tables/estaddesc_vacantes.tex", write replace
+file write tabla1 "\begin{table}" _n
+file write tabla1 "\centering"_n
+file write tabla1 "\begin{tabular}{lcccccc} \toprule"_n
+file write tabla1 "                                    & \multicolumn{3}{c}{PRE-SAE (2019)} & \multicolumn{3}{c}{POST-SAE (2020)} &     \\ \hline"_n
+file write tabla1 "                                    &  VA Negativo             & VA Positivo              & Total                    &  VA Negativo             &  VA Positivo             & Total    \\"_n
+file write tabla1 "Matrícula                           & `mat_2019_0'             & `mat_2019_1'             & `mat_2019_tot'             & `mat_2020_0'             & `mat_2020_1'             & `mat_2020_tot'             \\"_n
+file write tabla1 "Vacantes vacías\footnote{dasdasd}   & `n_empty_2019_sum_0'     & `n_empty_2019_sum_1'     & `n_empty_2019_sum_tot'     & `n_empty_2020_sum_0'     & `n_empty_2020_sum_1'     & `n_empty_2020_sum_tot'     \\"_n
+file write tabla1 "Cursos con vacantes vacías          & `empty_2019_sum_0'       & `empty_2019_sum_1'       & `empty_2019_sum_tot'       & `empty_2020_sum_0'       & `empty_2020_sum_1'       & `empty_2020_sum_tot'       \\"_n
+file write tabla1 "\% Cursos con vacantes vacías       & `empty_2019_mean_0'      & `empty_2019_mean_1'      & `empty_2019_mean_tot'      & `empty_2020_mean_0'      & `empty_2020_mean_1'      & `empty_2020_mean_tot'      \\"_n
+file write tabla1 "\Delta vacantes                     & `delta_2019_sum_0'       & `delta_2019_sum_1'       & `delta_2019_sum_tot'       & `delta_2020_sum_0'       & `delta_2019_sum_1'       & `delta_2020_sum_tot'       \\"_n
+file write tabla1 "Vacantes vacías / matrícula         & `prop_empty_2019_mean_0' & `prop_empty_2019_mean_1' & `prop_empty_2019_mean_tot' & `prop_empty_2020_mean_0' & `prop_empty_2020_mean_1' & `prop_empty_2020_mean_tot' \\"_n
+file write tabla1 "Observaciones                       & `N_2019_0'               & `N_2019_1'               & `N_2019_tot'               & `N_2020_0'               & `N_2020_1'               & `N_2020_tot'               \\ \bottomrule"_n
+file write tabla1 "\end{tabular}"_n
+file write tabla1 "\label{}"_n
+file write tabla1 "\caption{}"_n
+file write tabla1 "\end{table}"_n
+file close tabla1
+
+
+* ------ test de diferencia de medias ------- *
+
+ttest prop_empty, by(va_positivo)
+preserve
+keep if year ==2019
+ttest prop_empty, by(va_positivo)
+restore
+
+preserve
+keep if year ==2020
+ttest prop_empty, by(va_positivo)
+restore
+
+* --- pre sae y post sae --- *
+tab year
+ttest prop_empty, by(year)
+return list
+local p_total =`r(p)'
+
+
+preserve
+keep if va_positivo == 0
+ttest prop_empty, by(year)
+local p_va0 =`r(p)'
+restore
+
+preserve
+keep if va_positivo == 1
+ttest prop_empty, by(year)
+local p_va1 = `r(p)'
+restore
+
+local dif_total = `prop_empty_2020_mean_tot' - `prop_empty_2019_mean_tot'
+local dif_0 = `prop_empty_2020_mean_0' - `prop_empty_2019_mean_0'
+local dif_1 = `prop_empty_2020_mean_1' - `prop_empty_2019_mean_1'
+
+foreach x in total va1 va0 {
+  if `p_`x'' <=0.01 {
+    local `star_`x'' = "***"
+  }
+  else if `p_`x'' <=0.05 & `p_`x''>0.01 {
+    local `star_`x'' = "**"
+  }
+  else if `p_`x'' <=0.1 & `p_`x''>0.05 {
+    local `star_`x'' = "*"
+  }
+}
+
+file open  tabla2 using "$tables/estaddesc_vacantes_dif.tex", write replace
+file write tabla2 "\begin{table}" _n
+file write tabla2 "\centering"_n
+file write tabla2 "\begin{tabular}{lcccccc} \hline \hline"_n
+file write tabla2 "                 && PRE-SAE (2019)             && POST-SAE (2020)             && \Delta     \\ \hline "_n
+file write tabla2 "                 &&                            &&                             &&             \\ "_n
+file write tabla2 "Muestra completa && `prop_empty_2019_mean_tot' && `prop_empty_2020_mean_tot'  &&  `dif_total'`star_tot'  \\    "_n
+file write tabla2 "VA\leq0          && `prop_empty_2019_mean_0'   && `prop_empty_2020_mean_0'    &&   `dif_0'`star_va0'     \\"_n
+file write tabla2 "VA>0             && `prop_empty_2019_mean_1'   && `prop_empty_2020_mean_1'    &&    `dif_1'`star_va1'   \\ \hline \hline"_n
+file write tabla2 "\end{tabular}"_n
+file write tabla2 "\label{fig:benefits_dif}"_n
+file write tabla2 "\caption{Proporción de vacantes desiertas promedio por período, según el \textit{value added} de las escuelas.}"_n
+file write tabla2 "\end{table}"_n
+file close tabla2
+
+sum prop_empty
+preserve
+drop if empty_vacs == 0
+keep va_mean_simple prop_empty year
+keep if year == 2019
+export excel "$main/data/for_benefit_estimation_2019.xlsx", replace
+restore
+
+preserve
+drop if empty_vacs ==0
+keep va_mean_simple prop_empty year
+keep if year == 2020
+export excel "$main/data/for_benefit_estimation_2020.xlsx", replace
+restore
+
+* --- scatter (pasar a matlab)
+drop if empty_vacs==0
+tw (scatter va_mean_simple prop_empty if year == 2019, mcolor("75 22 199%20"))   ///
+   (scatter va_mean_simple prop_empty if year == 2020, mcolor("61 187 171%20"))   , ///
+   graphr(fc(white) lcolor(white) ilcolor(white)  lwidth(thick) )  ///
    bgcolor(white) plotr(style(none) fc(white) lcolor(white) lwidth(thick)) ///
-   legend(order(1 "2019" 2 "2020"))
+    ytitle("Mean Value Added") title("", color(`color1'))    ///
+   yline(0, lcolor(black%20) lpattern(dash))  legend(order(1 "Pre-SAE" 2 "Post-SAE")) ///
+   xtitle("(vacantes vacías/matrícula)")
+gr export "$figures/empty_va_byyear.png", as(png) replace
 
-* --- reshape
-*reshape wide vacs@ mat@ va@ va_mean_com@ tot_com@ pc_mat, i(rbd) j(year)
+tw (scatter va_mean_simple prop_empty if year == 2019, mcolor("75 22 199%50"))   , ///
+   graphr(fc(white) lcolor(white) ilcolor(white)  lwidth(thick) )  ///
+   bgcolor(white) plotr(style(none) fc(white) lcolor(white) lwidth(thick)) ///
+    ytitle("Mean Value Added") title("Pre-SAE", color(`color1'))    ///
+   yline(0, lcolor(black%20) lpattern(dash))  ///
+   xtitle("(vacantes vacías/matrícula)") saving(plot1, replace)
 
+tw (scatter va_mean_simple prop_empty if year == 2020, mcolor("75 22 199%50"))   , ///
+  graphr(fc(white) lcolor(white) ilcolor(white)  lwidth(thick) )  ///
+  bgcolor(white) plotr(style(none) fc(white) lcolor(white) lwidth(thick)) ///
+   ytitle("Mean Value Added") title("Post-SAE", color(`color1'))    ///
+  yline(0, lcolor(black%20) lpattern(dash))  ///
+  xtitle("(vacantes vacías/matrícula)") saving(plot2, replace)
 
+graph combine plot1.gph plot2.gph, ycommon   cols(1) ///
+graphr(fc(white) lcolor(white) ilcolor(white)  lwidth(thick) )
+gr display, xsize(7) ysize (10)
+gr export "$figures/empty_va_byyear_combine.png", as(png) replace
+
+* --- predecir la probabilidad de tener una vacante vacía dado características --- *
+gen sae = (year==2020)
+* --- MPL --- *
+reg empty_vacs sae
+* --- Probit --- *
+probit empty_vacs sae if va_positivo == 0
+probit empty_vacs sae if va_positivo == 1
+margins, atmeans post
+
+* --- Logit --- *
+logit empty_vacs sae if va_positivo == 0
+logit empty_vacs sae if va_positivo == 1
+
+margins, atmeans post
 stop
-gen over_mean = (va>va_mean_com) //si el rbd tiene un VA por sobre la media de la comuna en un año dado
-//corregir por tamaño matricula
-
-
-* --- copiar vacantes --- *
-forvalues year = 2011/2018 {
-  gen vacs_`year' = vacs_2019
-}
-
-
-* --- promedio ponderado
-bys year cod_com_rbd: egen tot_mat  = sum(mat)
-bys year cod_com_rbd: egen mean_mat = mean(mat)
-bys year cod_com_rbd: egen sd_mat   = sd(mat)
-gen mat_weight = mat/tot_mat
-gen mat_norm = (mat-mean_mat)/sd_mat
-br
-* --- gen ratio vacantes/matrícula
-forvalues year = 2011/2021 {
-  gen ratio_vacsmat_`year' = vacs_`year'/mat_`year'
-}
