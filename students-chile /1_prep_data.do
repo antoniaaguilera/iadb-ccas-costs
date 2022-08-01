@@ -276,7 +276,7 @@ export delimited  "$pathData/intermediate/for_cost_calculation.csv", replace
 
 
 
-stop 
+ 
 * =========================================== *
 *   PREP DATA FOR SATISFACTION ANALYSIS
 * =========================================== *
@@ -299,23 +299,23 @@ export delimited "$pathData/intermediate/survey_chile_short.csv", replace
 
 * ---- Panel matrícula 2011-2021 ---- *
 
-local path2005 = "$pathData/matricula/matricula-por-estudiante/basica-y-media/Matricula-por-estudiante-2005/20140805_matricula_unica_2005_20050430_PUBL.csv"
-local path2006 = "$pathData/matricula/matricula-por-estudiante/basica-y-media/Matricula-por-estudiante-2006/20140805_matricula_unica_2006_20060430_PUBL.csv"
-local path2007 = "$pathData/matricula/matricula-por-estudiante/basica-y-media/Matricula-por-estudiante-2007/20140805_matricula_unica_2007_20070430_PUBL.csv"
-local path2008 = "$pathData/matricula/matricula-por-estudiante/basica-y-media/Matricula-por-estudiante-2008/20140805_matricula_unica_2008_20080430_PUBL.csv"
-local path2009 = "$pathData/matricula/matricula-por-estudiante/basica-y-media/Matricula-por-estudiante-2009/20140805_matricula_unica_2009_20090430_PUBL.csv"
-local path2010 = "$pathData/matricula/matricula-por-estudiante/basica-y-media/Matricula-por-estudiante-2010/20130904_matricula_unica_2010_20100430_PUBL.csv"
-local path2011 = "$pathData/matricula/matricula-por-estudiante/basica-y-media/Matricula-por-estudiante-2011/20140812_matricula_unica_2011_20110430_PUBL.csv"
-local path2012 = "$pathData/matricula/matricula-por-estudiante/basica-y-media/Matricula-por-estudiante-2012/20140812_matricula_unica_2012_20120430_PUBL.csv"
-local path2013 = "$pathData/matricula/matricula-por-estudiante/basica-y-media/Matricula-por-estudiante-2013/20140808_matricula_unica_2013_20130430_PUBL.csv"
-local path2014 = "$pathData/matricula/matricula-por-estudiante/basica-y-media/Matricula-por-estudiante-2014/20140924_matricula_unica_2014_20140430_PUBL.csv"
-local path2015 = "$pathData/matricula/matricula-por-estudiante/basica-y-media/Matricula-por-estudiante-2015/20150923_matricula_unica_2015_20150430_PUBL.csv"
-local path2016 = "$pathData/matricula/matricula-por-estudiante/basica-y-media/Matricula-por-estudiante-2016/20160926_matricula_unica_2016_20160430_PUBL.csv"
-local path2017 = "$pathData/matricula/matricula-por-estudiante/basica-y-media/Matricula-por-estudiante-2017/20170921_matricula_unica_2017_20170430_PUBL.csv"
-local path2018 = "$pathData/matricula/matricula-por-estudiante/basica-y-media/Matricula-por-estudiante-2018/20181005_Matrícula_unica_2018_20180430_PUBL.csv"
-local path2019 = "$pathData/matricula/matricula-por-estudiante/basica-y-media/Matricula-por-estudiante-2019/20191028_Matrícula_unica_2019_20190430_PUBL.csv"
-local path2020 = "$pathData/matricula/matricula-por-estudiante/basica-y-media/Matricula-por-estudiante-2020/20200921_Matrícula_unica_2020_20200430_WEB.csv"
-local path2021 = "$pathData/matricula/matricula-por-estudiante/basica-y-media/Matricula-por-estudiante-2021/20210913_Matrícula_unica_2021_20210430_WEB.csv"
+local path2005 = "$pathData/input/matricula/matricula-por-estudiante/basica-y-media/Matricula-por-estudiante-2005/20140805_matricula_unica_2005_20050430_PUBL.csv"
+local path2006 = "$pathData/input/matricula/matricula-por-estudiante/basica-y-media/Matricula-por-estudiante-2006/20140805_matricula_unica_2006_20060430_PUBL.csv"
+local path2007 = "$pathData/input/matricula/matricula-por-estudiante/basica-y-media/Matricula-por-estudiante-2007/20140805_matricula_unica_2007_20070430_PUBL.csv"
+local path2008 = "$pathData/input/matricula/matricula-por-estudiante/basica-y-media/Matricula-por-estudiante-2008/20140805_matricula_unica_2008_20080430_PUBL.csv"
+local path2009 = "$pathData/input/matricula/matricula-por-estudiante/basica-y-media/Matricula-por-estudiante-2009/20140805_matricula_unica_2009_20090430_PUBL.csv"
+local path2010 = "$pathData/input/matricula/matricula-por-estudiante/basica-y-media/Matricula-por-estudiante-2010/20130904_matricula_unica_2010_20100430_PUBL.csv"
+local path2011 = "$pathData/input/matricula/matricula-por-estudiante/basica-y-media/Matricula-por-estudiante-2011/20140812_matricula_unica_2011_20110430_PUBL.csv"
+local path2012 = "$pathData/input/matricula/matricula-por-estudiante/basica-y-media/Matricula-por-estudiante-2012/20140812_matricula_unica_2012_20120430_PUBL.csv"
+local path2013 = "$pathData/input/matricula/matricula-por-estudiante/basica-y-media/Matricula-por-estudiante-2013/20140808_matricula_unica_2013_20130430_PUBL.csv"
+local path2014 = "$pathData/input/matricula/matricula-por-estudiante/basica-y-media/Matricula-por-estudiante-2014/20140924_matricula_unica_2014_20140430_PUBL.csv"
+local path2015 = "$pathData/input/matricula/matricula-por-estudiante/basica-y-media/Matricula-por-estudiante-2015/20150923_matricula_unica_2015_20150430_PUBL.csv"
+local path2016 = "$pathData/input/matricula/matricula-por-estudiante/basica-y-media/Matricula-por-estudiante-2016/20160926_matricula_unica_2016_20160430_PUBL.csv"
+local path2017 = "$pathData/input/matricula/matricula-por-estudiante/basica-y-media/Matricula-por-estudiante-2017/20170921_matricula_unica_2017_20170430_PUBL.csv"
+local path2018 = "$pathData/input/matricula/matricula-por-estudiante/basica-y-media/Matricula-por-estudiante-2018/20181005_Matrícula_unica_2018_20180430_PUBL.csv"
+local path2019 = "$pathData/input/matricula/matricula-por-estudiante/basica-y-media/Matricula-por-estudiante-2019/20191028_Matrícula_unica_2019_20190430_PUBL.csv"
+local path2020 = "$pathData/input/matricula/matricula-por-estudiante/basica-y-media/Matricula-por-estudiante-2020/20200921_Matrícula_unica_2020_20200430_WEB.csv"
+local path2021 = "$pathData/input/matricula/matricula-por-estudiante/basica-y-media/Matricula-por-estudiante-2021/20210913_Matrícula_unica_2021_20210430_WEB.csv"
 
 
 forvalues year=2005/2021 {
@@ -386,9 +386,9 @@ save `mat_20052021', replace
 
 
 * ---- SAE 2019 ---- *
-local path_sae_2019_vacs = "$pathData/SAE/SAE_2019/A1_Oferta_Establecimientos_etapa_regular_2019_Admision_2020.csv"
-local path_sae_2020_vacs = "$pathData/SAE/SAE_2020/A1_Oferta_Establecimientos_etapa_regular_2020_Admision_2021.csv"
-local path_sae_2021_vacs = "$pathData/SAE/SAE_2021/A1_Oferta_Establecimientos_etapa_regular_2021_Admision_2022.csv"
+local path_sae_2019_vacs = "$pathData/input/SAE/SAE_2019/A1_Oferta_Establecimientos_etapa_regular_2019_Admision_2020.csv"
+local path_sae_2020_vacs = "$pathData/input/SAE/SAE_2020/A1_Oferta_Establecimientos_etapa_regular_2020_Admision_2021.csv"
+local path_sae_2021_vacs = "$pathData/input/SAE/SAE_2021/A1_Oferta_Establecimientos_etapa_regular_2021_Admision_2022.csv"
 
 import delimited "`path_sae_2021_vacs'", clear
 forvalues year = 2019/2021 {
@@ -418,7 +418,7 @@ duplicates report rbd
 
 
 * ---- Pegar data Value Added ---- *
-use "$main/data/ModelData_SchoolsAll_2021_04_13.dta", clear
+use "$main/data/input/ModelData_SchoolsAll_2021_04_13.dta", clear
 keep School_RBD va2_ave Year
 rename School_RBD rbd
 reshape wide va2_ave, i(rbd) j(Year)
@@ -450,7 +450,7 @@ save `benefits', replace
 * --------------- ADD SIMCE ------------- *
 * ======================================= *
 foreach year in 2006 2008 2010 2012 2014 2015 2016 2017 2018 {
-  use  "$pathData/simce/students/simce4b`year'_alu_mrun.dta", clear
+  use  "$pathData/input/simce/students/simce4b`year'_alu_mrun.dta", clear
   gen mean_score = (ptje_lect4b_alu + ptje_mate4b_alu)/2
   collapse (mean) ptje_lect4b_alu ptje_mate4b_alu ave=mean_score, by(rbd)
   gen year = `year'
@@ -474,7 +474,7 @@ merge 1:m rbd using `benefits'
 keep if _merge==3
 drop _merge
 
-save "$pathData/intermediate/for_benefit_estimation.dta", replace
+export delimited "$pathData/intermediate/for_benefit_estimation.csv", replace
 
 
 

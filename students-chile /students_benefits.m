@@ -194,7 +194,7 @@ figure(7)
 scatter(benefit4(:,2), benefit4(:,3),"MarkerFaceColor",color1 ,"MarkerEdgeColor",color1, "MarkerFaceAlpha", 0.5 )
 hold on
 scatter(benefit4(:,2), benefit4(:,4),"MarkerFaceColor",color2 ,"MarkerEdgeColor",color2, "MarkerFaceAlpha", 0.5 )
-xlabel("Promedio SIMCE")
+xlabel("Promedio SIMCE Estandarizado")
 legend("Pre-SAE", "Post-SAE", "Location","southoutside", "NumColumns", 2)
 ylabel("Tasa de Vacantes Desiertas")
 grid
@@ -271,6 +271,7 @@ ylabel("Diferencia en Tasa de Vacantes Desiertas")
 xlabel("Promedio SIMCE")
 grid on
 box on
+
 saveas(gcf,[figuresPath 'nonparam_est_consimce.png'])
 
 %% Figure 9: Simce + VA 

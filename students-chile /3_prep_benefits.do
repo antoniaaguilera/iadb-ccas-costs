@@ -8,7 +8,7 @@
 * ---- PREAMBULO ---- *
 
 global main "/Users/antoniaaguilera/ConsiliumBots Dropbox/antoniaaguilera@consiliumbots.com/projects/iadb-ccas-costs"
-global pathData "/Users/antoniaaguilera/ConsiliumBots Dropbox/antoniaaguilera@consiliumbots.com/random_data"
+global pathData "$main/data"
 global figures "$main/figures"
 global tables "$main/tables"
 global git "/Users/antoniaaguilera/GitHub/iadb-ccas-costs"
@@ -18,7 +18,7 @@ global git "/Users/antoniaaguilera/GitHub/iadb-ccas-costs"
 * --------------------------- *
 * --------- VA a $$ --------- *
 * --------------------------- *
-import delimited "$main/data/input_data/TeacherSpending_VA.csv", clear
+import delimited "$pathData/input/TeacherSpending_VA.csv", clear
 keep va2_ave_by2 spendingperteacher_by2
 sort va2_ave_by2
 sum va2_ave_by2
@@ -33,7 +33,7 @@ local cons_va = _b[_cons]
 * -------------------------- *
 * ------- estimación ------- *
 * -------------------------- *
-use "$main/data/for_benefit_estimation.dta", clear
+import delimited "$pathData/intermediate/for_benefit_estimation.csv", clear 
 sort rbd year
 * --- promedio simple --- *
 bys rbd: egen va_mean_simple = mean(va) //promedio simple del VA 2005-2016
@@ -70,7 +70,7 @@ forval x=2019/2021 {
 preserve
 keep va_mean_simple2019 prop_empty*  vac* cupos* matricula*
 order va_mean_simple2019 prop_empty* vac* cupos* matricula*
-export excel "$main/data/forbenefits1.xlsx", replace first(variables)
+export excel "$pathData/output/forbenefits1.xlsx", replace first(variables)
 restore
 
 * -----------------------------------------------------------------*
@@ -90,10 +90,11 @@ bys entry: sum benefit1
 preserve
 egen net_benefit1 = sum(benefit1)
 keep net_benefit1 benefit1 va_mean_simple2020 delta_mat
-export excel "$main/data/forbenefits2.xlsx", replace first(variables)
+export excel "$pathData/output/forbenefits2.xlsx", replace first(variables)
 
 * -- proyección
 keep if _n ==1
+
 expand 10
 gen year =_n
 gen acumm_benefit = sum(net_benefit1)
@@ -109,7 +110,7 @@ replace tot_benefit = net_benefit1 + acumm_benefit[_n-1] + acumm_benefit[_n-2] +
 replace tot_benefit = net_benefit1 + acumm_benefit[_n-1] + acumm_benefit[_n-2] + acumm_benefit[_n-3] + acumm_benefit[_n-4] + acumm_benefit[_n-5] + acumm_benefit[_n-6] + acumm_benefit[_n-7] + acumm_benefit[_n-8] + acumm_benefit[_n-9] if year == 10
 
 replace tot_benefit = (tot_benefit)/1000
-export excel "$main/data/forbenefits3.xlsx", replace  first(variables)
+export excel "$pathData/output/forbenefits3.xlsx", replace  first(variables)
 restore
 
 * ------------------------------------------------------------------*
@@ -119,5 +120,5 @@ restore
 preserve
 keep ave ave_st prop_empty*  vac* cupos* matricula*
 order ave ave_st prop_empty*  vac* cupos* matricula*
-export excel "$main/data/forbenefits4.xlsx", replace first(variables)
+export excel "$pathData/output/forbenefits4.xlsx", replace first(variables)
 restore
