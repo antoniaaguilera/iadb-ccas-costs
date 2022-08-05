@@ -3,7 +3,7 @@
 * ======================================= *
 
 * ---- PATHS ---- *
-global main "/Users/antoniaaguilera/ConsiliumBots Dropbox/antoniaaguilera@consiliumbots.com/projects/iadb-ccas-costs"
+global main "/Users/antoniaaguilera/ConsiliumBots Dropbox/antoniaaguilera@consiliumbots.com/projects/iadb-ccas-costs/students"
 global pathData "$main/data"
 global graphs "$main/figures"
 global tables "$main/tables"
@@ -186,6 +186,8 @@ keep if cost_type=="gross" & country == "CHILE" & applicant_type == "students"
 
 keep total_cost year cost_cat
 reshape wide total_cost@, i(year) j(cost_cat)
+gen estimated_benefit = 4061606/1000000
+
 export excel "$pathData/output/students_proj_cl.xlsx", replace first(var)
 
 
