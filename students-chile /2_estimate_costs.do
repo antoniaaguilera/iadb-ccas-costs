@@ -26,7 +26,7 @@ local infra_algorithm   = 186000 //cost of tech infraestructure and algorithm cr
 local process_admin     = 50000  //administration of the yearly assignment process
 local outreach          = 248000 //outreach and information during the assignment process
 local monitoring_c      = 0 //monitoring and user support
-local support_c 		    = 60340 //3308635*0.14*105/806
+local support_c 	    = 60340 //3308635*0.14*105/806
 local maintenance       = 7000 //annual maintenance of the system
 }
 
@@ -39,10 +39,9 @@ import delimited "$pathData/intermediate/for_cost_calculation.csv", clear
 replace implementation  = `infra_algorithm' if cost_cat==1
 replace yearly_admin    = `process_admin'   if cost_cat==1
 replace  outreach       = `outreach'        if cost_cat==1
-* se estima un monitoreo chico 
-replace monitoring = stateofficialwage/monthhrs*time_monitoring/4*schools if cost_cat==1 
-replace maintenance     = `maintenance'   if cost_cat==1
-replace support    = `support_c'   if cost_cat==1
+replace monitoring      = stateofficialwage/monthhrs*time_monitoring/4*schools if cost_cat==1 
+replace maintenance     = `maintenance'     if cost_cat==1
+replace support         = `support_c'       if cost_cat==1
 
 * -------------- *
 * -- STUDENTS -- *
@@ -58,31 +57,26 @@ replace staff = stateofficialwage/monthhrs*time_staff*schools if cost_cat == 1
 * ---------------------------------------------------------------- *
 * ------------- CATEGORÍA 2: Ahorros en Desperdicios ------------- *
 * ---------------------------------------------------------------- *
-{
+
 * -------------- *
 * -- STUDENTS -- *
 * -------------- *
 
 // Time spent by families on application process
-replace application = minwage/monthhrs*time_per_app*n_apps*applicants   ///
-if cost_cat==2 & applicant_type=="students"
+replace application = minwage/monthhrs*time_per_app*n_apps*applicants  if cost_cat==2
 
 // Opportunity cost of transport cost + fare
-replace transport = minwage/monthhrs*time_transport*n_apps*applicants + (busfare*n_apps*applicants)    ///
-if cost_cat==2 & applicant_type=="students"
+replace transport = minwage/monthhrs*time_transport*applicants + (busfare*n_apps*applicants)  if cost_cat==2
 
 // Cost of supplies used in the application process
-replace supplies = (supplycost*n_apps*applicants) ///
-if cost_cat==2 & applicant_type=="students"
+replace supplies = (supplycost*n_apps*applicants) if cost_cat==2
 
 // Cost of school staff working during an application process ((application + review) + communication)
-replace staff = stateofficialwage/monthhrs*time_staff*n_apps*applicants + stateofficialwage/monthhrs*time_staff*applicants ///
-if cost_cat==2 & applicant_type=="students"
+replace staff = stateofficialwage/monthhrs*time_staff*n_apps*applicants + stateofficialwage/monthhrs*time_staff*applicants if cost_cat==2
 
 // Cost of monitoring by authorities
-replace monitoring = stateofficialwage/monthhrs*time_monitoring*schools ///
-if cost_cat==2 & applicant_type=="students"
-}
+replace monitoring = stateofficialwage/monthhrs*time_monitoring*schools if cost_cat==2
+
 
 * ----------------------------------------------------------------- *
 * ------------- CATEGORÍA 3: Beneficio de la Política ------------- *
@@ -151,8 +145,8 @@ local cost_families        : di %5.4g families[1]/1000000
 local cost_admin_perapp    : di %2.1g state[4]
 local cost_schools_perapp  : di %2.1g schools[4]
 local cost_families_perapp : di %2.1g families[4]
-local cost_total : di %5.4g `cost_admin'+`cost_schools'+`cost_families'
-local cost_total_perapp : di %3.2g `cost_admin_perapp'+`cost_schools_perapp'+`cost_families_perapp'
+local cost_total           : di %5.4g `cost_admin'+`cost_schools'+`cost_families'
+local cost_total_perapp    : di %3.2g `cost_admin_perapp'+`cost_schools_perapp'+`cost_families_perapp'
 
 
 file open  costs_summary using "$tables/costs_summary.tex", write replace
@@ -203,8 +197,8 @@ file write costs_summary2 "\caption{Costos de la implementación de un Sistema d
 file write costs_summary2 "\resizebox{17cm}{!}{"_n
 file write costs_summary2 "\begin{tabular}{|c|l|c|c|}"_n
 file write costs_summary2 "\hline"_n
-file write costs_summary2 "\rowcolor{black!25} & \multicolumn{1}{|c|}{Descripción} & Total & Por postulante\\"_n
-file write costs_summary2 "\rowcolor{black!25} & \multicolumn{1}{|c|}{}  & (MUSD) & (USD) \\\hline"_n
+file write costs_summary2 "\rowcolor{black!25} & \multicolumn{1}{|c|}{\textbf{COSTOS}} & Total & Por postulante\\"_n
+file write costs_summary2 "\rowcolor{black!25} & \multicolumn{1}{|c|}{Descripción}  & (MUSD) & (USD) \\\hline"_n
 file write costs_summary2 "\multicolumn{1}{|c|}{\multirow{8}{*}{Administrador}} & - Equipo de algoritmo y construcción de & &\\"_n
 file write costs_summary2 "\multicolumn{1}{|c|}{} & infraestructura tecnológica               &\\$`cost_admin_1' & \\$`cost_admin_1_pc'  \\"_n
 file write costs_summary2 "\multicolumn{1}{|c|}{} & - Difusión y campañas comunicacionales    &\\$`cost_admin_2' & \\$`cost_admin_2_pc'  \\"_n
@@ -275,8 +269,8 @@ file write savings_summary2 "\caption{Ahorros de la implementación de un Sistem
 file write savings_summary2 "\resizebox{17cm}{!}{"_n
 file write savings_summary2 "\begin{tabular}{|c|l|c|c|}"_n
 file write savings_summary2 "\hline"_n
-file write savings_summary2 "\rowcolor{black!25} & \multicolumn{1}{|c|}{Descripción} & Total & Por postulante\\"_n
-file write savings_summary2 "\rowcolor{black!25} & \multicolumn{1}{|c|}{}  & (MUSD) & (USD) \\\hline"_n
+file write savings_summary2 "\rowcolor{black!25} & \multicolumn{1}{|c|}{\textbf{AHORROS}} & Total & Por postulante\\"_n
+file write savings_summary2 "\rowcolor{black!25} & \multicolumn{1}{|c|}{Descripción}  & (MUSD) & (USD) \\\hline"_n
 file write savings_summary2 "\multicolumn{1}{|c|}{\multirow{2}{*}{Administrador}} & - Monitoreo del proceso a nivel de cada & &\\"_n
 file write savings_summary2 "\multicolumn{1}{|c|}{} & escuela realizado por funcionarios públicos    &\\$`savings_admin_1' & \\$`savings_admin_1_pc'  \\\hline"_n
 file write savings_summary2 "\multicolumn{1}{|c|}{\multirow{3}{*}{Escuelas}} & - Personal de la escuela y materiales empleados && \\"_n
@@ -291,7 +285,4 @@ file write savings_summary2 "\label{tab:savings_long}"_n
 file write savings_summary2 "\end{table} "_n
 file close savings_summary2
 
-
-
-*export excel "$pathData/output_data/students_nota.xlsx", replace
 

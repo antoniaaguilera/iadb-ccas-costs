@@ -5,7 +5,7 @@
 %% Set Paths
 username = 'antoniaaguilera';
 if strcmp(username,'antoniaaguilera')
-    Path = '/Users/antoniaaguilera/ConsiliumBots Dropbox/antoniaaguilera@consiliumbots.com/projects/iadb-ccas-costs/';
+    Path = '/Users/antoniaaguilera/ConsiliumBots Dropbox/antoniaaguilera@consiliumbots.com/projects/iadb-ccas-costs/students/';
     dataPath = [Path 'data/'];
     figuresPath = [ Path 'figures/'];
 else
@@ -70,7 +70,7 @@ hold off
 xlim([1 10])
 xlabel('Años desde la implementación')
 ylabel('MU$D')
-ylim([0 22])
+ylim([0 20])
 grid on
 title('Ahorro neto a 10 años')
 subtitle('Asignación Coordinada de Estudiantes') 
@@ -120,3 +120,5 @@ legend('Costos', 'Impacto Neto', "Location","southoutside", "NumColumns", 2)
 box on 
 saveas(gcf,[figuresPath 'students_net.png'])
 
+mean_aux = cost4_proj-cost1_proj;
+x=mean(mean_aux);

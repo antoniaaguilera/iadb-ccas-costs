@@ -7,7 +7,7 @@
 
 * ---- PREAMBULO ---- *
 
-global main "/Users/antoniaaguilera/ConsiliumBots Dropbox/antoniaaguilera@consiliumbots.com/projects/iadb-ccas-costs"
+global main "/Users/antoniaaguilera/ConsiliumBots Dropbox/antoniaaguilera@consiliumbots.com/projects/iadb-ccas-costs/students"
 global pathData "$main/data"
 global figures "$main/figures"
 global tables "$main/tables"
@@ -83,15 +83,16 @@ replace spending2020 = 0 if spending2020<0
 
 * --- cambios en matrícula según VA
 gen delta_mat = matricula2020-matricula2019
+
 gen benefit1 = va_mean_simple2020 * delta_mat * spending2020
 bys entry: sum benefit1
 
 * -- guardar data para beneficios
-preserve
+*preserve
 egen net_benefit1 = sum(benefit1)
 keep net_benefit1 benefit1 va_mean_simple2020 delta_mat
 export excel "$pathData/output/forbenefits2.xlsx", replace first(variables)
-
+ 
 * -- proyección
 keep if _n ==1
 

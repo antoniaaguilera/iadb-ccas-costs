@@ -295,7 +295,6 @@ export delimited "$pathData/intermediate/survey_chile_short.csv", replace
 
 
 * ---- Panel matrícula 2011-2021 ---- *
-
 local path2005 = "$pathData/input/matricula/matricula-por-estudiante/basica-y-media/Matricula-por-estudiante-2005/20140805_matricula_unica_2005_20050430_PUBL.csv"
 local path2006 = "$pathData/input/matricula/matricula-por-estudiante/basica-y-media/Matricula-por-estudiante-2006/20140805_matricula_unica_2006_20060430_PUBL.csv"
 local path2007 = "$pathData/input/matricula/matricula-por-estudiante/basica-y-media/Matricula-por-estudiante-2007/20140805_matricula_unica_2007_20070430_PUBL.csv"

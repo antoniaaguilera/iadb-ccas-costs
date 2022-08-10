@@ -122,7 +122,7 @@ replace application = minwage/monthhrs*time_per_app*n_apps*applicants   ///
 if cost_cat==2 & applicant_type=="students"
 
 // Opportunity cost of transport cost + fare
-replace transport = minwage/monthhrs*time_transport*n_apps*applicants + (busfare*n_apps*applicants)    ///
+replace transport = minwage/monthhrs*time_transport*applicants + (busfare*n_apps*applicants)    ///
 if cost_cat==2 & applicant_type=="students"
 
 // Cost of supplies used in the application process
@@ -291,7 +291,7 @@ replace application = minwage/monthhrs*time_per_app*n_apps*applicants   ///
 if cost_cat==2
 
 // Opportunity cost of transport cost + fare
-replace transport = minwage/monthhrs*time_transport*n_apps*applicants + (busfare*n_apps*applicants)    ///
+replace transport = minwage/monthhrs*time_transport*applicants + (busfare*n_apps*applicants)    ///
 if cost_cat==2 
 
 // Cost of supplies used in the application process

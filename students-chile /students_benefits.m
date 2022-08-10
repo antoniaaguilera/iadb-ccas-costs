@@ -6,7 +6,7 @@
 %% Set Paths
 username = 'antoniaaguilera';
 if strcmp(username,'antoniaaguilera')
-    Path = '/Users/antoniaaguilera/ConsiliumBots Dropbox/antoniaaguilera@consiliumbots.com/projects/iadb-ccas-costs/';
+    Path = '/Users/antoniaaguilera/ConsiliumBots Dropbox/antoniaaguilera@consiliumbots.com/projects/iadb-ccas-costs/students/';
     dataPath = [Path 'data/'];
     figuresPath = [ Path 'figures/'];
 else
@@ -144,6 +144,11 @@ xline(-0.35,'--', "", 'LineWidth',0.7,'HandleVisibility','off')
 %title("Diferencia en Tasa de Vacantes Desiertas")
 
 saveas(gcf,[figuresPath 'nonparam_est.png'])
+xgrid2 = transpose(xgrid); 
+Delta2 = ygridSAE(:,1)-ygrid(:,1);
+T = table(Delta2, xgrid2);
+filename = [dataPath '/intermediate/non_param_delta.xlsx'] ;
+writetable(T, filename)
 
 %% Figure 4: Benefits vs Value Added
 benefit2_posvacs = benefit2(benefit2(:,2)>0,:);
