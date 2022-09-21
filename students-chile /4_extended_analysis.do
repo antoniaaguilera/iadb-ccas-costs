@@ -15,7 +15,7 @@ global git "/Users/antoniaaguilera/GitHub/iadb-ccas-costs"
 * ------------------------ EXTENDED ANALYSIS I ------------------------ *
 * --------------------------------------------------------------------- *
 
-import delimited "$pathData/intermediate/for_cost_calculation.csv", clear 
+import delimited "$pathData/intermediate/for_cost_calculation.csv", clear
 
 local pc_app = 0.14
 
@@ -69,8 +69,8 @@ local time_app_st_c		= 70/60  //application time students centralized (HRS)
 local time_monitoring_s = 0.5    //monitoring  time per school in decentralized system
 local time_monitoring_t = 0.25   //monitoring  time per school in decentralized system
 local time_staff        = 0.5    //15 minutes per student + 15 minutes reviewing application
-local time_staff_c      = 1 
-local time_transport	= 1.9886197 
+local time_staff_c      = 1
+local time_transport	= 1.9886197
 
 * --- Other Parameters --- *
 local supplycost        = 0.1    //unit supply cost
@@ -162,7 +162,7 @@ replace beneficios_mock = 0 if beneficios_mock==.
 * ---------------------- COSTO POR POSTULANTE --------------------- *
 * ----------------------------------------------------------------- *
 * --- per applicant --- *
-foreach vars in implementation yearly_admin application transport supplies staff monitoring { 
+foreach vars in implementation yearly_admin application transport supplies staff monitoring {
 	replace `vars'= 0 if `vars'==.
 	replace `vars'=`vars'/applicants if cost_type=="per_applicant"
 }
@@ -196,7 +196,7 @@ export excel "$pathData/output/students_proj_cl.xlsx", replace first(var)
 * ---------------------------------------------------------------------- *
 
 clear all
-set obs 500 
+set obs 500
 
 local pc_app = 0.14
 * ---  generate population numbers
@@ -209,12 +209,12 @@ gen country = "CHILE"
 tempfile population
 save `population', replace
 
-* --- llamar costos 
-import delimited "$pathData/intermediate/for_extended_analysis.csv", clear 
+* --- llamar costos
+import delimited "$pathData/intermediate/for_extended_analysis.csv", clear
 keep if _n == 1
 
 merge 1:m country using `population', update
-drop _merge 
+drop _merge
 cap drop applicants
 gen applicants = population_students*`pc_app'
 
@@ -235,11 +235,11 @@ replace time_per_app = `time_app_st_d'         if cost_cat==2
 gen time_transport   = `time_transport'
 
 gen n_apps           = `apps_students'         if cost_cat==2
- 
+
 gen time_staff       = `time_staff'
 gen time_monitoring  = `time_monitoring_s'     if cost_cat==2
 
-gen support_cost     = `supportcost'	       if cost_cat==1 
+gen support_cost     = `supportcost'	       if cost_cat==1
 
 gen supplycost       = `supplycost'
 
@@ -254,13 +254,13 @@ foreach x in implementation yearly_admin maintenance outreach  support monitorin
 * ---------------------------------------------------------------- *
 
 replace implementation  = `infra_algorithm' ///
-if cost_cat==1 
+if cost_cat==1
 replace yearly_admin    = `process_admin'  ///
 if cost_cat==1
 replace  outreach       = `outreach'       ///
 if cost_cat==1
 replace monitoring      = `monitoring_c'  ///
-if cost_cat==1 
+if cost_cat==1
 replace maintenance     = `maintenance'   ///
 if cost_cat==1
 replace support    = `support_c'   ///
@@ -272,10 +272,10 @@ if cost_cat==1
 
 // Opportunity cost of application time
 replace application = minwage/monthhrs*time_per_app*applicants ///
-if cost_cat==1 
+if cost_cat==1
 
-// Cost of 1 hour per school of updating vacant seats in platform 
-replace staff = stateofficialwage/monthhrs*`time_staff_c'*schools if cost_cat == 1 
+// Cost of 1 hour per school of updating vacant seats in platform
+replace staff = stateofficialwage/monthhrs*`time_staff_c'*schools if cost_cat == 1
 
 
 * ---------------------------------------------------------------- *
@@ -292,19 +292,19 @@ if cost_cat==2
 
 // Opportunity cost of transport cost + fare
 replace transport = minwage/monthhrs*time_transport*applicants + (busfare*n_apps*applicants)    ///
-if cost_cat==2 
+if cost_cat==2
 
 // Cost of supplies used in the application process
 replace supplies = (supplycost*n_apps*applicants) ///
-if cost_cat==2 
+if cost_cat==2
 
 // Cost of school staff working during an application process ((application + review) + communication)
 replace staff = stateofficialwage/monthhrs*`time_staff'*n_apps*applicants + stateofficialwage/monthhrs*`time_staff'*applicants ///
-if cost_cat==2 
+if cost_cat==2
 
 // Cost of monitoring by authorities
 replace monitoring = stateofficialwage/monthhrs*time_monitoring*schools ///
-if cost_cat==2 
+if cost_cat==2
 
 
 * ----------------------------------------------------------------- *
@@ -324,7 +324,7 @@ format total_cost %20.5f
 collapse (sum) total_cost applicants, by(cost_cat year)
 
 drop if year==.
-sort cost_cat year applicants 
+sort cost_cat year applicants
 bys cost_cat: gen acc_tot = sum(total_cost)
 bys cost_cat: gen acc_stu = sum(applicants)
 replace acc_tot = acc_tot/1000000

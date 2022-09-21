@@ -8,10 +8,10 @@ import excel "$main/input_data/parameters.xlsx", clear first
 * --- Policy Costs Parameters --- *
 local infra_algorithm   = 247860 //perú
 local process_admin     = 50000  //ecuador
-*local outreach          = 248000 //outreach and information during the assignment process 
+local outreach          = 248000 //outreach and information during the assignment process
 local monitoring_c      = 0 //monitoring and user support
-local support_c 		= 60340 //3308635*0.14*105/806
-*local maintenance       = 7000 //annual maintenance of the system
+local support_c 	    	= 60340 //3308635*0.14*105/806
+local maintenance       = 7000 //annual maintenance of the system
 
 * --- Labour Market Parameters --- *
 local hrs_teachers      = 44
@@ -24,33 +24,29 @@ local apps_teachers     = 5
 
 * --- Teacher Evaluation Parameters --- *
 local eval_teachers_d   = 2      //teacher evaluation time in a decentralized system
-local eval_teachers_c   = 4		 //teacher evaluation time in a centralized system  
+local eval_teachers_c   = 4		 //teacher evaluation time in a centralized system
 local n_interviews      = 3      //teacher interviews in a decentralized system
 local eval_cost         = 15     //15 usd ecuador
 
 * --- Time Parameters --- *
-local time_app_st_d     = 1     //application time students decentralized (hrs)
-local time_app_st_c		= 70/60  //application time students centralized (HRS)
-local time_app_te_d		= 1      //application time teachers decentralized
-local time_app_te_c		= 0.5    //application time teachers centralized
-local time_monitoring_s = 0.5    //monitoring  time per school in decentralized system
+local time_app_te_d		  = 1      //application time teachers decentralized
+local time_app_te_c		  = 0.5    //application time teachers centralizedlocal time_monitoring_t = 0.25   //monitoring  time per school in decentralized system
 local time_monitoring_t = 0.25   //monitoring  time per school in decentralized system
 local time_staff        = 0.5    //15 minutes per student + 15 minutes reviewing application
-local time_staff2       = 0.5    //30 minutes per admitted student 
-local time_staff_c      = 1 
+local time_staff_c      = 1
 local time_transport    = 0.5    //Time spent in transport, all applicants
 
 * --- Learning Gains Parameters --- *
 local improved_score_vac= 0.011  //nº of position where teacher's score is improved as a % of total teachers
 local learning_effect   = 1/3    //impact of improving teachers as a fraction of the yearly learning in std dev
-local loss_income       = 0.025  //% of life loss income due to learning losses 
+local loss_income       = 0.025  //% of life loss income due to learning losses
 local discount_rate     = 0.03
 local wage_growth		= 0.02
 
 * --- Other Parameters --- *
 local supplycost        = 0.1    //unit supply cost
-local datacost          = 1.25   //unit data cost 
-local contactcost       = 2.53   //unit contact cost 
+local datacost          = 1.25   //unit data cost
+local contactcost       = 2.53   //unit contact cost
 local supportcost       = 0.12   //user support cost per applicant
 }
 
@@ -113,15 +109,15 @@ replace time_per_app = `time_app_te_d'         if applicant_type=="teachers" & c
 
 gen time_transport   = `time_transport'
 
-gen n_apps           = `apps_teachers'         if applicant_type=="teachers" 
- 
-gen time_eval        = `eval_teachers_d'       if applicant_type=="teachers" & cost_cat==2 
-replace time_eval    = `eval_teachers_c'       if applicant_type=="teachers" & cost_cat==1 
+gen n_apps           = `apps_teachers'         if applicant_type=="teachers"
+
+gen time_eval        = `eval_teachers_d'       if applicant_type=="teachers" & cost_cat==2
+replace time_eval    = `eval_teachers_c'       if applicant_type=="teachers" & cost_cat==1
 
 gen time_staff       = `time_staff'
 gen time_monitoring  =  `time_monitoring_t'  if applicant_type=="teachers" & cost_cat==2
 
-*gen support_cost     = `supportcost'	       if applicant_type=="students" & cost_cat==1 
+*gen support_cost     = `supportcost'	       if applicant_type=="students" & cost_cat==1
 
 gen evalcost         = `eval_cost'             if applicant_type=="teachers" & cost_cat==1
 gen supplycost       = `supplycost'
@@ -138,10 +134,10 @@ foreach x in implementation yearly_admin maintenance outreach monitoring applica
 * -------------- CATEGORÍA 1: Costos de la Política -------------- *
 * ---------------------------------------------------------------- *
 {
-replace implementation  = `infra_algorithm' if cost_cat==1 
+replace implementation  = `infra_algorithm' if cost_cat==1
 replace yearly_admin    = `process_admin'   if cost_cat==1
 *replace  outreach       = `outreach'        if cost_cat==1
-replace monitoring      = `monitoring_c'    if cost_cat==1 
+replace monitoring      = `monitoring_c'    if cost_cat==1
 *replace maintenance     = `maintenance'     if cost_cat==1
 *replace support    = `support_c'   if cost_cat==1
 
@@ -149,7 +145,7 @@ replace monitoring      = `monitoring_c'    if cost_cat==1
 * -- TEACHERS -- *
 * -------------- *
 
-// Opportunity cost of application time 
+// Opportunity cost of application time
 replace application = teacherwage/monthhrs_teacher*`time_app_te_c' *applicants ///
 if cost_cat==1 & applicant_type=="teachers"
 
@@ -164,7 +160,7 @@ replace teachers_eval_gob =  `eval_cost'*applicants if cost_cat==1 & applicant_t
 replace transport = teacherwage/monthhrs_teacher*time_transport*applicants + (busfare*applicants) ///
 if cost_cat==1 & applicant_type=="teachers"
 
-// Cost of 1 hour per school of updating vacant seats in platform 
+// Cost of 1 hour per school of updating vacant seats in platform
 replace staff = stateofficialwage/monthhrs*`time_staff_c'*schools if cost_cat == 1 & applicant_type == "teachers"
 
 }
@@ -204,7 +200,7 @@ if cost_cat==2 & applicant_type=="teachers"
 replace monitoring = stateofficialwage/monthhrs*time_monitoring*schools   ///  
 if cost_cat==2 & applicant_type=="teachers"
 
-// Cost of 1 hour per school of coordinating with schools 
+// Cost of 1 hour per school of coordinating with schools
 replace staff = stateofficialwage/monthhrs*`time_staff_c'*schools if cost_cat == 2 & applicant_type == "teachers"
 
 }
@@ -228,7 +224,7 @@ replace staff = stateofficialwage/monthhrs*`time_staff_c'*schools if cost_cat ==
 *replace learning_gains = `improved_score_vac'*enrollment*st_ratio*`learning_effect'*student_exp*gdp_percap ///
 *if cost_cat==3 & applicant_type=="teachers"
 
-*replace learning_gains2 = 
+*replace learning_gains2 =
 
 }
 
@@ -250,7 +246,7 @@ data contact learning_gains)
 
 format total_cost %20.01f
 
-sort place_code applicant_type cost_type cost_cat 
+sort place_code applicant_type cost_type cost_cat
 rename cost_cat cost_cat2
 gen cost_cat=cost_cat2
 order place_code place_name country cost_cat
@@ -273,7 +269,7 @@ export excel "$main/output_data/cost_teachers_ec.xlsx", replace first(var)
 * --------------- II. GRÁFICOS POR PAÍS Y PROYECCIONES ---------------- *
 * --------------------------------------------------------------------- *
 
-use `cost_basic', clear 
+use `cost_basic', clear
 keep if place_code=="ecuador_country" & applicant_type=="teachers"
 expand 10
 bys applicant_type place_code cost_cat cost_type: gen year=_n
@@ -281,7 +277,7 @@ bys applicant_type place_code cost_cat cost_type: gen year=_n
 foreach x in 519 2059 {
 	bys applicant_type place_code cost_cat cost_type: gen y2_`x' = y_`x' if _n == 1
 	bys applicant_type place_code cost_cat cost_type: replace y2_`x' = y_`x'+y_`x'[_n-1]*0.01 if _n > 1
-	
+
 }
 
 order place_code place_name country applicant_type cost_cat year
@@ -292,7 +288,7 @@ gen population_proj     = population ///
 if year==1
 
 bys applicant_type place_code cost_cat cost_type: replace population_proj = round(population_proj[_n-1]+population_proj[_n-1]*y2_2059, 1) ///
-if year>1 & year<=10 
+if year>1 & year<=10
 
 replace applicants=population_proj*`pc_app'*0.02
 drop population
@@ -307,15 +303,15 @@ replace time_per_app = `time_app_te_d'         if applicant_type=="teachers" & c
 
 gen time_transport   = `time_transport'
 
-gen n_apps           = `apps_teachers'         if applicant_type=="teachers" 
- 
-gen time_eval        = `eval_teachers_d'       if applicant_type=="teachers" & cost_cat==2 
-replace time_eval    = `eval_teachers_c'       if applicant_type=="teachers" & cost_cat==1 
+gen n_apps           = `apps_teachers'         if applicant_type=="teachers"
+
+gen time_eval        = `eval_teachers_d'       if applicant_type=="teachers" & cost_cat==2
+replace time_eval    = `eval_teachers_c'       if applicant_type=="teachers" & cost_cat==1
 
 gen time_staff       = `time_staff'
 gen time_monitoring  =  `time_monitoring_t'  if applicant_type=="teachers" & cost_cat==2
 
-*gen support_cost     = `supportcost'	       if applicant_type=="students" & cost_cat==1 
+*gen support_cost     = `supportcost'	       if applicant_type=="students" & cost_cat==1
 
 gen evalcost         = `eval_cost'             if applicant_type=="teachers" & cost_cat==1
 gen supplycost       = `supplycost'
@@ -334,7 +330,7 @@ foreach x in implementation yearly_admin maintenance outreach monitoring applica
 {
 
 replace implementation  = `infra_algorithm' ///
-if cost_cat==1 
+if cost_cat==1
 replace yearly_admin    = `process_admin' + `monitoring_c'  ///
 if cost_cat==1
 
@@ -342,7 +338,7 @@ if cost_cat==1
 * -- TEACHERS -- *
 * -------------- *
 
-// Opportunity cost of application time 
+// Opportunity cost of application time
 replace application = teacherwage/monthhrs_teacher*`time_app_te_c' *applicants ///
 if cost_cat==1 & applicant_type=="teachers"
 
@@ -357,7 +353,7 @@ replace teachers_eval_gob =  `eval_cost'*applicants if cost_cat==1 & applicant_t
 replace transport = teacherwage/monthhrs_teacher*time_transport*applicants + (busfare*applicants) ///
 if cost_cat==1 & applicant_type=="teachers"
 
-// Cost of 1 hour per school of updating vacant seats in platform 
+// Cost of 1 hour per school of updating vacant seats in platform
 replace staff = stateofficialwage/monthhrs*`time_staff_c'*schools if cost_cat == 1 & applicant_type == "teachers"
 
 }
@@ -394,7 +390,7 @@ replace staff = stateofficialwage/monthhrs*`time_staff'*n_apps*applicants + ///
 if cost_cat==2 & applicant_type=="teachers"
 
 // Cost of monitoring by authorities
-replace monitoring = stateofficialwage/monthhrs*time_monitoring*schools   ///  
+replace monitoring = stateofficialwage/monthhrs*time_monitoring*schools   ///
 if cost_cat==2 & applicant_type=="teachers"
 
 }
@@ -421,9 +417,9 @@ format total_cost %20.01g
 * ------------------------------------------------------------------ *
 * ------------------------ GRÁFICOS POR AÑO ------------------------ *
 * ------------------------------------------------------------------ *
-grstyle clear 
+grstyle clear
 
-keep if cost_type=="gross" & place_code=="ecuador_country" & applicant_type=="teachers" 
+keep if cost_type=="gross" & place_code=="ecuador_country" & applicant_type=="teachers"
 
 export excel "$main/output_data/cost_teachers_proj_ec.xlsx", replace first(var)
 
@@ -434,8 +430,8 @@ bgcolor(white) plotr(style(none) fc(white) lcolor(white) lwidth(thick)) ///
 title("Ganancias a 10 años") subtitle("Asignación Centralizada de Docentes") xscale(r(1(1)10)) xlabel(1(1)10)
 
 gr display, xsize(6)
-gr export "$graphs/teachers_ecuador.png", as(png) replace 
- 
+gr export "$graphs/teachers_ecuador.png", as(png) replace
+
 * --------------------------------------------------------------------- *
 * ------------ III. PROYECCIONES DE AHORROS POR POBLACIÓN ------------- *
 * --------------------------------------------------------------------- *
@@ -445,13 +441,13 @@ gen applicants=0.14*population_teachers*0.02
 gen country ="ECUADOR"
 
 tempfile population
-save `population', replace 
+save `population', replace
 
-use `cost_basic', clear 
+use `cost_basic', clear
 keep if _n == 1
-drop cost_cat cost_type applicants 
+drop cost_cat cost_type applicants
 merge 1:m country using `population'
-expand 3 
+expand 3
 bys year: gen cost_cat = 1  if _n == 1
 bys year: replace cost_cat = 2  if _n == 2
 bys year: replace cost_cat = 3  if _n == 3
@@ -468,15 +464,15 @@ replace time_per_app = `time_app_te_d'         if applicant_type=="teachers" & c
 
 gen time_transport   = `time_transport'
 
-gen n_apps           = `apps_teachers'         if applicant_type=="teachers" 
- 
-gen time_eval        = `eval_teachers_d'       if applicant_type=="teachers" & cost_cat==2 
-replace time_eval    = `eval_teachers_c'       if applicant_type=="teachers" & cost_cat==1 
+gen n_apps           = `apps_teachers'         if applicant_type=="teachers"
+
+gen time_eval        = `eval_teachers_d'       if applicant_type=="teachers" & cost_cat==2
+replace time_eval    = `eval_teachers_c'       if applicant_type=="teachers" & cost_cat==1
 
 gen time_staff       = `time_staff'
 gen time_monitoring  =  `time_monitoring_t'  if applicant_type=="teachers" & cost_cat==2
 
-*gen support_cost     = `supportcost'	       if applicant_type=="students" & cost_cat==1 
+*gen support_cost     = `supportcost'	       if applicant_type=="students" & cost_cat==1
 
 gen evalcost         = `eval_cost'             if applicant_type=="teachers" & cost_cat==1
 gen supplycost       = `supplycost'
@@ -495,7 +491,7 @@ foreach x in implementation yearly_admin maintenance outreach monitoring applica
 {
 
 replace implementation  = `infra_algorithm' ///
-if cost_cat==1 
+if cost_cat==1
 replace yearly_admin    = `process_admin' + `monitoring_c'  ///
 if cost_cat==1
 
@@ -503,7 +499,7 @@ if cost_cat==1
 * -- TEACHERS -- *
 * -------------- *
 
-// Opportunity cost of application time 
+// Opportunity cost of application time
 replace application = teacherwage/monthhrs_teacher*`time_app_te_c' *applicants ///
 if cost_cat==1 & applicant_type=="teachers"
 
@@ -518,7 +514,7 @@ replace teachers_eval_gob =  `eval_cost'*applicants if cost_cat==1 & applicant_t
 replace transport = teacherwage/monthhrs_teacher*time_transport*applicants + (busfare*applicants) ///
 if cost_cat==1 & applicant_type=="teachers"
 
-// Cost of 1 hour per school of updating vacant seats in platform 
+// Cost of 1 hour per school of updating vacant seats in platform
 replace staff = stateofficialwage/monthhrs*`time_staff_c'*schools if cost_cat == 1 & applicant_type == "teachers"
 
 }
@@ -555,7 +551,7 @@ replace staff = stateofficialwage/monthhrs*`time_staff'*n_apps*applicants + ///
 if cost_cat==2 & applicant_type=="teachers"
 
 // Cost of monitoring by authorities
-replace monitoring = stateofficialwage/monthhrs*time_monitoring*schools   ///  
+replace monitoring = stateofficialwage/monthhrs*time_monitoring*schools   ///
 if cost_cat==2 & applicant_type=="teachers"
 
 }
@@ -571,7 +567,7 @@ format total_cost %20.01f
 
 collapse (sum) total_cost applicants, by(cost_cat year)
 
-sort cost_cat year applicants 
+sort cost_cat year applicants
 bys cost_cat year: gen acc_tot = sum(total_cost)
 bys cost_cat year: gen acc_stu = sum(applicants)
 replace acc_tot = acc_tot/1000000
@@ -581,7 +577,7 @@ replace total_cost = total_cost/1000000
 * ----------------------------------------------------------------- *
 export excel "$main/output_data/cost_teachers_pop_ec.xlsx", replace first(var)
 
-grstyle clear 
+grstyle clear
 local actual = 164344*0.14
 tw (line total_cost applicants if cost_cat==1)(line acc_tot acc_stu if cost_cat==2) , ///
 legend(label(1 "Costo") label(2 "Ahorros") row(1)) xtitle("Postulantes") ylab(,angle(0)) ytitle("MUSD") ///
@@ -591,9 +587,9 @@ title("Ahorro neto según cantidad de postulantes") subtitle("Asignación Centra
 xline(2400) xline(`actual', lcolor(green)) xlabel( 2400 "2,400" 10000 "10,000" 20000 "20,000" `actual' "20,008" 30000 "30,000")
 
 gr display, xsize(8)
-gr export "$graphs/teachers_ecuador_applicants.png", as(png) replace 
-stop 
-*y=0.00003\dots x+0.40739\dots 
-*y=0.00019\dots x+0.02738\dots 
+gr export "$graphs/teachers_ecuador_applicants.png", as(png) replace
+stop
+*y=0.00003\dots x+0.40739\dots
+*y=0.00019\dots x+0.02738\dots
 *\frac{0.38001}{0.00016}
 *2375

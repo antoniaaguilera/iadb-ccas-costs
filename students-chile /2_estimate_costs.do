@@ -16,11 +16,11 @@ global git "/Users/antoniaaguilera/GitHub/iadb-ccas-costs"
 * -------------------------------------------------------------------------- *
 * -------------------- ESTIMATION BY PLACE AND CATEGORY -------------------- *
 * -------------------------------------------------------------------------- *
-clear all 
+clear all
 * --------------------------------------- *
 * ----------- SET PARAMETERS  ----------- *
 * --------------------------------------- *
-{
+
 * --- Policy Costs Parameters --- *
 local infra_algorithm   = 186000 //cost of tech infraestructure and algorithm creation
 local process_admin     = 50000  //administration of the yearly assignment process
@@ -28,9 +28,9 @@ local outreach          = 248000 //outreach and information during the assignmen
 local monitoring_c      = 0 //monitoring and user support
 local support_c 	    = 60340 //3308635*0.14*105/806
 local maintenance       = 7000 //annual maintenance of the system
-}
 
-import delimited "$pathData/intermediate/for_cost_calculation.csv", clear 
+
+import delimited "$pathData/intermediate/for_cost_calculation.csv", clear
 
 * ---------------------------------------------------------------- *
 * -------------- CATEGORÍA 1: Costos de la Política -------------- *
@@ -39,7 +39,7 @@ import delimited "$pathData/intermediate/for_cost_calculation.csv", clear
 replace implementation  = `infra_algorithm' if cost_cat==1
 replace yearly_admin    = `process_admin'   if cost_cat==1
 replace  outreach       = `outreach'        if cost_cat==1
-replace monitoring      = stateofficialwage/monthhrs*time_monitoring/4*schools if cost_cat==1 
+replace monitoring      = stateofficialwage/monthhrs*time_monitoring/4*schools if cost_cat==1
 replace maintenance     = `maintenance'     if cost_cat==1
 replace support         = `support_c'       if cost_cat==1
 
@@ -48,7 +48,7 @@ replace support         = `support_c'       if cost_cat==1
 * -------------- *
 
 // Opportunity cost of application time
-replace application = minwage/monthhrs*time_per_app*applicants if cost_cat==1 
+replace application = minwage/monthhrs*time_per_app*applicants if cost_cat==1
 
 // Cost of 1 hour per school of updating vacant seats in platform
 replace staff = stateofficialwage/monthhrs*time_staff*schools if cost_cat == 1
@@ -284,5 +284,3 @@ file write savings_summary2 "}"_n
 file write savings_summary2 "\label{tab:savings_long}"_n
 file write savings_summary2 "\end{table} "_n
 file close savings_summary2
-
-

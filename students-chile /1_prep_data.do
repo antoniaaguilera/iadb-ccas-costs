@@ -15,7 +15,7 @@ global pathData "$main/data"
 * --------------------------------- *
 * ------------ SCHOOLS ------------ *
 * --------------------------------- *
-import delimited "$pathData/input/SAE/SAE_2019/A1_Oferta_Establecimientos_etapa_regular_2019_Admision_2020.csv", clear 
+import delimited "$pathData/input/SAE/SAE_2019/A1_Oferta_Establecimientos_etapa_regular_2019_Admision_2020.csv", clear
 
 gen lat_school = subinstr(lat, ",", ".",.)
 gen lon_school = subinstr(lon, ",", ".",.)
@@ -24,16 +24,16 @@ keep rbd lat_school lon_school
 duplicates drop rbd, force
 
 merge 1:1 rbd using "$pathData/input/SchoolsComunas.dta", keepusing(region comuna)
-drop _merge 
+drop _merge
 
 tempfile schools
-save `schools', replace 
+save `schools', replace
 
 * ---------------------------------- *
 * ------------ STUDENTS ------------ *
 * ---------------------------------- *
-* ---- REGULAR STAGE 
-import delimited "$pathData/input/SAE/SAE_2019/B1_Postulantes_etapa_regular_2019_Admision_2020_PUBL.csv", clear 
+* ---- REGULAR STAGE
+import delimited "$pathData/input/SAE/SAE_2019/B1_Postulantes_etapa_regular_2019_Admision_2020_PUBL.csv", clear
 
 gen lat_student = subinstr(lat_con_error, ",", ".",.)
 gen lon_student = subinstr(lon_con_error, ",", ".",.)
@@ -41,10 +41,10 @@ gen lon_student = subinstr(lon_con_error, ",", ".",.)
 keep mrun lat_student lon_student
 
 tempfile students_reg
-save `students_reg', replace 
+save `students_reg', replace
 
-* ---- COMPLEMENTARY STAGE 
-import delimited "$pathData/input/SAE/SAE_2019/B2_Postulantes_etapa_complementaria_2019_Admision_2020_PUBL.csv", clear 
+* ---- COMPLEMENTARY STAGE
+import delimited "$pathData/input/SAE/SAE_2019/B2_Postulantes_etapa_complementaria_2019_Admision_2020_PUBL.csv", clear
 
 gen lat_student = subinstr(lat_con_error, ",", ".",.)
 gen lon_student = subinstr(lon_con_error, ",", ".",.)
@@ -52,14 +52,14 @@ gen lon_student = subinstr(lon_con_error, ",", ".",.)
 keep mrun lat_student lon_student
 
 tempfile students_comp
-save `students_comp', replace 
+save `students_comp', replace
 
 * ------------------------------------------------------------ *
 * ---------- APPLICATIONS AND DISTANCE CALCULATIONS ---------- *
 * ------------------------------------------------------------ *
 
-* ---- REGULAR STAGE 
-import delimited "$pathData/input/SAE/SAE_2019/C1_Postulaciones_etapa_regular_2019_Admision_2020_PUBL.csv", clear 
+* ---- REGULAR STAGE
+import delimited "$pathData/input/SAE/SAE_2019/C1_Postulaciones_etapa_regular_2019_Admision_2020_PUBL.csv", clear
 
 keep mrun rbd preferencia_postulante
 
@@ -67,71 +67,71 @@ bys mrun: egen n_applications_reg = max(preferencia_postulante)
 
 * ---- merge
 merge m:1 mrun using `students_reg'
-drop _merge 
+drop _merge
 
 merge m:1 rbd using `schools'
-keep if _merge == 3 
-drop _merge 
+keep if _merge == 3
+drop _merge
 
 * ---- calculate distance
-destring lat_* lon_*, replace  
+destring lat_* lon_*, replace
 geodist lat_student lon_student lat_school lon_school, g(distance)
 
-sum distance 
+sum distance
 
-keep if region == 13 
+keep if region == 13
 * ---- travel time pre-sae
 local mean_speed = 19.21
 gen travel_time_presae = distance/`mean_speed'
 
 sum travel_time_presae
 
-* ---- mean per student 
+* ---- mean per student
 bys mrun: egen sum_travel_presae_reg = sum(travel_time_presae)
 
-duplicates drop mrun, force 
+duplicates drop mrun, force
 
 tempfile applications_reg
-save `applications_reg', replace 
+save `applications_reg', replace
 
-* ---- COMPLEMENTARY STAGE 
-import delimited "$pathData/input/SAE/SAE_2019/C2_Postulaciones_etapa_complementaria_2019_Admision_2020_PUBL.csv", clear 
+* ---- COMPLEMENTARY STAGE
+import delimited "$pathData/input/SAE/SAE_2019/C2_Postulaciones_etapa_complementaria_2019_Admision_2020_PUBL.csv", clear
 
 keep mrun rbd preferencia_postulante
 bys mrun: egen n_applications_comp = max(preferencia_postulante)
 
 * ---- merge
 merge m:1 mrun using `students_comp'
-drop _merge 
+drop _merge
 
 merge m:1 rbd using `schools'
-keep if _merge == 3 
-drop _merge 
+keep if _merge == 3
+drop _merge
 
 * ---- calculate distance
-destring lat_* lon_*, replace  
+destring lat_* lon_*, replace
 geodist lat_student lon_student lat_school lon_school, g(distance)
 
-sum distance 
+sum distance
 
-keep if region == 13 
+keep if region == 13
 * ---- travel time pre-sae
 local mean_speed = 19.21
 gen travel_time_presae = distance/`mean_speed'
 
 sum travel_time_presae
 
-* ---- mean per student 
+* ---- mean per student
 bys mrun: egen sum_travel_presae_comp = sum(travel_time_presae)
 
-duplicates drop mrun, force 
+duplicates drop mrun, force
 
 * --------------------------------------- *
 * --------------- MERGE  ---------------- *
 * --------------------------------------- *
 
 merge 1:1 mrun using `applications_reg'
-drop _merge 
+drop _merge
 
 replace sum_travel_presae_reg = 0 if sum_travel_presae_reg ==.
 replace sum_travel_presae_comp = 0 if sum_travel_presae_comp ==.
@@ -167,15 +167,14 @@ local hrs_parents       = 45
 * --- Application Parameters --- *
 local pc_app            = 0.14
 local apps_students     = 3
-local apps_teachers     = 5
 
 * --- Time Parameters --- *
 local time_app_st_d     = 20/60   //application time students decentralized (hrs)
-local time_app_st_c		= 70/60  //application time students centralized (HRS)
+local time_app_st_c		  = 70/60  //application time students centralized (HRS)
 local time_monitoring_s = 0.5    //monitoring  time per school in decentralized system
 local time_monitoring_t = 0.25   //monitoring  time per school in decentralized system
 local time_staff        = 0.5    //15 minutes per student + 15 minutes reviewing application
-local time_staff_c      = 1 
+local time_staff_c      = 1
 local time_transport_d  = `travel_time_d'   //Time spent in transport, all applicants
 
 * --- Other Parameters --- *
@@ -215,9 +214,6 @@ bys place_code applicant_type: replace cost_cat=_n
 order place_code place_name country applicant_type cost_cat
 sort place_code applicant_type cost_cat
 
-label define cost_cat 1 "Costos Política" 2 "Ahorros en Desperdicios" 3 "Beneficios de la Política"
-label values cost_cat cost_cat
-
 expand 2
 gen cost_type=""
 bys place_code applicant_type cost_cat: replace cost_type="gross" if _n==1
@@ -227,7 +223,7 @@ sort place_code applicant_type cost_cat cost_type
 
 keep if country=="CHILE" & applicant_type=="students"
 
-export delimited  "$pathData/intermediate/for_extended_analysis.csv", replace 
+export delimited  "$pathData/intermediate/for_extended_analysis.csv", replace
 
 
 * ----------------------------------------------------------------- *
@@ -237,7 +233,7 @@ export delimited  "$pathData/intermediate/for_extended_analysis.csv", replace
 gen time_per_app     = `time_app_st_c'         if cost_cat==1
 replace time_per_app = `time_app_st_d'         if cost_cat==2
 
-gen time_transport   = 0				 	   if cost_cat == 1 
+gen time_transport   = 0				 	   if cost_cat == 1
 replace time_transport = `time_transport_d'	   if cost_cat == 2
 
 gen n_apps           = `apps_students'         if cost_cat==2
@@ -269,11 +265,11 @@ gen cost_cat  = 1 if cost_cat_aux == 1
 replace cost_cat = 2 if cost_cat_aux == 2
 replace cost_cat = 3 if cost_cat_aux == 3
 
-export delimited  "$pathData/intermediate/for_cost_calculation.csv", replace 
+export delimited  "$pathData/intermediate/for_cost_calculation.csv", replace
 
 
 
- 
+
 * =========================================== *
 *   PREP DATA FOR SATISFACTION ANALYSIS
 * =========================================== *
@@ -286,7 +282,7 @@ collapse (sum) pc = aux , by(nota_proceso)
 drop if nota_proceso==.
 egen tot = sum(pc)
 replace pc = round(pc/tot*100, .01)
-export delimited "$pathData/intermediate/survey_chile_short.csv", replace 
+export delimited "$pathData/intermediate/survey_chile_short.csv", replace
 
 
 * ======================================= *
@@ -471,23 +467,3 @@ keep if _merge==3
 drop _merge
 
 export delimited "$pathData/intermediate/for_benefit_estimation.csv", replace
-
-
-
-
-
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
