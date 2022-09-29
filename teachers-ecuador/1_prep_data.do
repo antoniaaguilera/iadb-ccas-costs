@@ -100,8 +100,6 @@ sort place_code applicant_type cost_cat cost_type
 
 keep if place_code=="ecuador_country" & applicant_type=="teachers"
 
-export delimited  "$pathData/intermediate/for_extended_analysis.csv", replace
-
 * ----------------------------------------------------------------- *
 * -------------------- PARAMETER CONFIGURATION -------------------- *
 * ----------------------------------------------------------------- *
@@ -130,7 +128,7 @@ gen contactperapp    = `contactcost'
 
 
 * --- inicializar variables
-foreach x in implementation yearly_admin maintenance outreach monitoring application teachers_eval transport supplies staff data contact learning_gains learning_gains2 teachers_eval_gob{
+foreach x in implementation yearly_admin maintenance outreach support monitoring application teachers_eval transport supplies staff data contact learning_gains learning_gains2 teachers_eval_gob {
 	gen `x'=.
 }
 

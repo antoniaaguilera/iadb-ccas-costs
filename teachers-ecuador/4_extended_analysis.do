@@ -8,7 +8,7 @@ global pathData "$main/data"
 global graphs "$main/figures"
 global tables "$main/tables"
 global git "/Users/antoniaaguilera/GitHub/iadb-ccas-costs"
-br
+
 * --------------------------------------------------------------------- *
 * ------------------------ EXTENDED ANALYSIS I ------------------------ *
 * --------------------------------------------------------------------- *
@@ -52,36 +52,6 @@ local monitoring_c      = 0 //monitoring and user support
 local support_c 	    	= applicants[1]*105/806 //3308635*0.14*105/806
 local maintenance       = 7000 //annual maintenance of the system
 
-* --- Labour Market Parameters --- *
-local hrs_teachers      = 44
-local hrs_parents       = 45
-
-* --- Application Parameters --- *
-local pc_app            = 0.14
-local apps_students     = 3
-local apps_teachers     = 5
-
-* --- Time Parameters --- *
-local time_app_te_d		  = 1      //application time teachers decentralized
-local time_app_te_c		  = 0.5    //application time teachers centralizedlocal time_monitoring_t = 0.25   //monitoring  time per school in decentralized system
-local time_monitoring_t = 0.25   //monitoring  time per school in decentralized system
-local time_staff        = 0.5    //15 minutes per student + 15 minutes reviewing application
-local time_staff_c      = 1
-local time_transport    = 0.5    //Time spent in transport, all applicants
-
-* --- Teacher Evaluation Parameters --- *
-local eval_teachers_d   = 2      //teacher evaluation time in a decentralized system
-local eval_teachers_c   = 4		 //teacher evaluation time in a centralized system
-local n_interviews      = 3      //teacher interviews in a decentralized system
-local eval_cost         = 15     //15 usd ecuador
-
-* --- Other Parameters --- *
-local supplycost        = 0.1    //unit supply cost
-local datacost          = 1.25   //unit data cost
-local contactcost       = 2.53   //unit contact cost
-local supportcost       = 0.12   //user support cost per applicant
-
-
 * ---------------------------------------------------------------- *
 * -------------- CATEGORÍA 1: Costos de la Política -------------- *
 * ---------------------------------------------------------------- *
@@ -102,19 +72,25 @@ replace support         = `support_c'       if cost_cat==1
 * -------------- *
 
 // Opportunity cost of application time
-replace application = teacherwage/monthhrs_teacher*time_per_app*applicants if cost_cat==1
+replace application = teacherwage/monthhrs_teacher*time_per_app*applicants if cost_cat==1 //revisar si está este dato en encuesta
 
 // Opportunity cost of evaluation time + cost of test
 replace teachers_eval = teacherwage/monthhrs_teacher*time_eval*applicants  if cost_cat==1
 
+// Cost of supplies used in the application process
+replace supplies = (supplycost*n_apps*applicants) 												 if cost_cat == 1
+
 //Evaluation cost for the government
-replace teachers_eval_gob = evalcost*applicants                           if cost_cat==1
+replace teachers_eval_gob = evalcost*applicants                            if cost_cat==1
 
 // Opportunity cost of transport time + fare
 replace transport = teacherwage/monthhrs_teacher*time_transport*applicants + (busfare*applicants) if cost_cat==1
 
 // Cost of 1 hour per school of updating vacant seats in platform
 replace staff = stateofficialwage/monthhrs*time_staff*schools             if cost_cat == 1
+
+// Cost of monitoring by authorities
+replace monitoring = stateofficialwage/monthhrs*time_monitoring*schools if cost_cat == 1
 
 * ---------------------------------------------------------------- *
 * ------------- CATEGORÍA 2: Ahorros en Desperdicios ------------- *
@@ -125,13 +101,13 @@ replace staff = stateofficialwage/monthhrs*time_staff*schools             if cos
 * -------------- *
 
 // Time spent by families on application process
-replace application = (teacherwage)/monthhrs_teacher*time_per_app*n_apps*applicants if cost_cat==2
+replace application = (teacherwage)/monthhrs_teacher*time_per_app*n_apps*applicants if cost_cat == 2
 
 // Opportunity cost of evaluation time for teachers
-replace teachers_eval = teacherwage/monthhrs_teacher*time_eval*n_apps*applicants    if cost_cat==2
+replace teachers_eval = teacherwage/monthhrs_teacher*time_eval*n_apps*applicants    if cost_cat == 2
 
 //Evaluation cost for the government
-replace teachers_eval_gob = evalcost*n_apps*applicants                              if cost_cat==2
+replace teachers_eval_gob = evalcost*n_apps*applicants                              if cost_cat == 2
 
 // Opportunity cost of transport time + fare
 replace transport = teacherwage/monthhrs_teacher*time_transport*n_apps*applicants + (busfare*applicants)*n_apps if cost_cat==2
@@ -139,22 +115,19 @@ replace transport = teacherwage/monthhrs_teacher*time_transport*n_apps*applicant
 // Cost of supplies used in the application process
 replace supplies = (supplycost*n_apps*applicants)                                   if cost_cat==2
 
-// Cost of staff working during an application process + 15 usd per applicant
-replace staff = stateofficialwage/monthhrs*time_staff*n_apps*applicants + stateofficialwage/monthhrs*time_eval*applicants if cost_cat==2
+// Cost of staff working during an application process
+replace staff = stateofficialwage/monthhrs*time_staff*n_apps*applicants + stateofficialwage/monthhrs*time_eval*applicants if cost_cat == 2
 
 // Cost of monitoring by authorities
-replace monitoring = stateofficialwage/monthhrs*time_monitoring*schools             if cost_cat==2
-
-// Cost of 1 hour per school of coordinating with schools
-replace staff = stateofficialwage/monthhrs*time_staff*schools                       if cost_cat == 2
+replace monitoring = stateofficialwage/monthhrs*time_monitoring*schools             if cost_cat == 2
 
 
 * ----------------------------------------------------------------- *
 * ------------- CATEGORÍA 3: BENEFICIO DE LA POLÍTICA ------------- *
 * ----------------------------------------------------------------- *
 
-*gen beneficios_mock = (year/2+0.5)^2+1 if cost_cat==3
-*replace beneficios_mock = 0 if beneficios_mock==.
+gen beneficios_mock = ((year/3+0.5)^1.3+1)*1000000 if cost_cat==3
+replace beneficios_mock = 0 if beneficios_mock==.
 
 * ---- LEARNING GAINS ---- *
 *replace learning_gains = `improved_score_vac'*enrollment*st_ratio*`learning_effect'*student_exp*gdp_percap ///
@@ -164,7 +137,7 @@ replace staff = stateofficialwage/monthhrs*time_staff*schools                   
 * ---------------------- COSTO POR POSTULANTE --------------------- *
 * ----------------------------------------------------------------- *
 * --- per applicant --- *
-foreach vars in implementation yearly_admin application transport supplies staff monitoring data contact learning_gains teachers_eval_gob {
+foreach vars in implementation yearly_admin maintenance outreach support monitoring application teachers_eval transport supplies staff data contact learning_gains learning_gains2 teachers_eval_gob beneficios_mock {
 	replace `vars'= 0 if `vars'==.
 	replace `vars'=`vars'/applicants if cost_type=="per_applicant"
 }
@@ -172,12 +145,14 @@ foreach vars in implementation yearly_admin application transport supplies staff
 * ----------------------------------------------------------------- *
 * ------------------- COSTO TOTAL POR CATEGORÍA ------------------- *
 * ----------------------------------------------------------------- *
+keep country applicant_type year cost_cat cost_type applicants implementation yearly_admin maintenance outreach support monitoring application teachers_eval transport supplies staff data contact learning_gains learning_gains2 teachers_eval_gob beneficios_mock
+order country applicant_type year cost_cat cost_type applicants implementation yearly_admin maintenance outreach support monitoring application teachers_eval transport supplies staff data contact learning_gains learning_gains2 teachers_eval_gob
 
-egen total_cost     = rowtotal(implementation yearly_admin application transport supplies staff monitoring data contact learning_gains teachers_eval_gob)
-replace total_cost  = total_cost/1000000 if year==1
-replace total_cost = (yearly_admin + application + transport + supplies + staff + monitoring + data + contact + learning_gains + teachers_eval_gob)/1000000 if year>1
+egen total_cost      = rowtotal(implementation yearly_admin maintenance outreach support monitoring application teachers_eval transport supplies staff data contact learning_gains learning_gains2 teachers_eval_gob beneficios_mock) if year==1
+ereplace total_cost  = rowtotal(yearly_admin maintenance outreach support monitoring application teachers_eval transport supplies staff data contact learning_gains learning_gains2 teachers_eval_gob beneficios_mock)                if year>1
+replace total_cost   = total_cost/1000000
 
-format total_cost %20.01g
+format total_cost %10.3f
 
 * ------------------------------------------------------------------ *
 * ------------------------ GRÁFICOS POR AÑO ------------------------ *
@@ -212,7 +187,7 @@ tempfile population
 save `population', replace
 
 * --- llamar costos
-import delimited "$pathData/intermediate/for_extended_analysis.csv", clear
+import delimited "$pathData/intermediate/for_cost_calculation.csv", clear
 keep if _n == 1
 
 merge 1:m country using `population', update
@@ -226,72 +201,53 @@ bys year: gen cost_cat = 1      if _n == 1
 bys year: replace cost_cat = 2  if _n == 2
 bys year: replace cost_cat = 3  if _n == 3
 
-
-* ----------------------------------------------------------------- *
-* -------------------- PARAMETER CONFIGURATION -------------------- *
-* ----------------------------------------------------------------- *
-
-gen 	time_per_app   = `time_app_te_c'         if cost_cat == 1
-replace time_per_app = `time_app_te_d'         if cost_cat == 2
-
-gen time_transport   = `time_transport'
-
-gen n_apps           = `apps_teachers'
-
-gen time_eval        = `eval_teachers_c'       if cost_cat == 1
-replace time_eval    = `eval_teachers_d'       if cost_cat == 2
-
-gen time_staff       = `time_staff_c'					 if cost_cat == 1
-replace time_staff 	 = `time_staff'  	         if cost_cat == 2
-
-gen time_monitoring  = `time_monitoring_t'     if cost_cat <= 2
-
-gen support_cost     = `supportcost'
-
-gen evalcost         = `eval_cost'
-gen supplycost       = `supplycost'
-gen dataperapp       = `datacost'
-gen contactperapp    = `contactcost'
-
-
-* --- inicializar variables
-foreach x in implementation yearly_admin maintenance outreach monitoring application teachers_eval transport supplies staff data contact learning_gains learning_gains2 teachers_eval_gob{
-	gen `x'=.
-}
+* --- Policy Costs Parameters --- *
+local infra_algorithm   = 247860 //perú
+local process_admin     = 50000  //ecuador
+*local outreach          = 248000 //outreach and information during the assignment process
+local monitoring_c      = 0 //monitoring and user support
+local support_c 	    	= applicants[1]*105/806 //3308635*0.14*105/806
+local maintenance       = 7000 //annual maintenance of the system
 
 * ---------------------------------------------------------------- *
 * -------------- CATEGORÍA 1: Costos de la Política -------------- *
 * ---------------------------------------------------------------- *
 
-replace implementation  = `infra_algorithm' if cost_cat == 1
-replace yearly_admin    = `process_admin'   if cost_cat == 1
-replace  outreach       = `outreach'        if cost_cat == 1
-replace monitoring      = `monitoring_c'    if cost_cat == 1
-replace maintenance     = `maintenance'     if cost_cat == 1
-replace support         = `support_c'       if cost_cat == 1
+replace implementation  = `infra_algorithm' if cost_cat==1
+replace yearly_admin    = `process_admin'   if cost_cat==1
+*replace  outreach       = `outreach'        if cost_cat==1
+replace monitoring      = `monitoring_c'    if cost_cat==1
+replace maintenance     = `maintenance'     if cost_cat==1
+replace support         = `support_c'       if cost_cat==1
 
-* --------------- *
-* --- TEACHER --- *
-* --------------- *
+*disminución del 5% en el gasto de difusión, por año, los primeros 5 años
+*replace outreach = outreach-outreach*0.02*(year-1) if year<=5
+*replace outreach = outreach[5] if year>=6
+
+* -------------- *
+* -- TEACHERS -- *
+* -------------- *
 
 // Opportunity cost of application time
-replace application = minwage/monthhrs*time_per_app*applicants             if cost_cat == 1
-
-// Cost of 1 hour per school of updating vacant seats in platform
-replace staff = stateofficialwage/monthhrs*time_eval*schools               if cost_cat == 1
+replace application = teacherwage/monthhrs_teacher*time_per_app*applicants if cost_cat==1 //revisar si está este dato en encuesta
 
 // Opportunity cost of evaluation time + cost of test
-replace teachers_eval = teacherwage/monthhrs_teacher*time_eval*applicants  if cost_cat == 1
+replace teachers_eval = teacherwage/monthhrs_teacher*time_eval*applicants  if cost_cat==1
 
-// Evaluation cost for the government
-replace teachers_eval_gob =  evalcost*applicants                           if cost_cat == 1
+// Cost of supplies used in the application process
+replace supplies = (supplycost*n_apps*applicants) 												 if cost_cat == 1
+
+//Evaluation cost for the government
+replace teachers_eval_gob = evalcost*applicants                            if cost_cat==1
 
 // Opportunity cost of transport time + fare
-replace transport = teacherwage/monthhrs_teacher*time_transport*applicants + (busfare*applicants) if cost_cat == 1
+replace transport = teacherwage/monthhrs_teacher*time_transport*applicants + (busfare*applicants) if cost_cat==1
 
 // Cost of 1 hour per school of updating vacant seats in platform
-replace staff = stateofficialwage/monthhrs*time_staff*schools            if cost_cat == 1
+replace staff = stateofficialwage/monthhrs*time_staff*schools             if cost_cat == 1
 
+// Cost of monitoring by authorities
+replace monitoring = stateofficialwage/monthhrs*time_monitoring*schools if cost_cat == 1
 
 * ---------------------------------------------------------------- *
 * ------------- CATEGORÍA 2: Ahorros en Desperdicios ------------- *
@@ -302,7 +258,7 @@ replace staff = stateofficialwage/monthhrs*time_staff*schools            if cost
 * -------------- *
 
 // Time spent by families on application process
-replace application = (teacherwage)/monthhrs_teacher*time_per_app*n_apps*applicants  if cost_cat == 2
+replace application = (teacherwage)/monthhrs_teacher*time_per_app*n_apps*applicants if cost_cat == 2
 
 // Opportunity cost of evaluation time for teachers
 replace teachers_eval = teacherwage/monthhrs_teacher*time_eval*n_apps*applicants    if cost_cat == 2
@@ -311,28 +267,24 @@ replace teachers_eval = teacherwage/monthhrs_teacher*time_eval*n_apps*applicants
 replace teachers_eval_gob = evalcost*n_apps*applicants                              if cost_cat == 2
 
 // Opportunity cost of transport time + fare
-replace transport = teacherwage/monthhrs_teacher*time_transport*n_apps*applicants + (busfare*applicants)*n_apps if cost_cat == 2
+replace transport = teacherwage/monthhrs_teacher*time_transport*n_apps*applicants + (busfare*applicants)*n_apps if cost_cat==2
 
 // Cost of supplies used in the application process
-replace supplies = (supplycost*n_apps*applicants)                                   if cost_cat == 2
+replace supplies = (supplycost*n_apps*applicants)                                   if cost_cat==2
 
-// Cost of staff working during an application process + 15 usd per applicant
+// Cost of staff working during an application process
 replace staff = stateofficialwage/monthhrs*time_staff*n_apps*applicants + stateofficialwage/monthhrs*time_eval*applicants if cost_cat == 2
 
 // Cost of monitoring by authorities
-replace monitoring = stateofficialwage/monthhrs*time_monitoring*schools   if cost_cat == 2
+replace monitoring = stateofficialwage/monthhrs*time_monitoring*schools             if cost_cat == 2
 
-
-* ----------------------------------------------------------------- *
-* ------------- CATEGORÍA 3: Beneficio de la Política ------------- *
-* ----------------------------------------------------------------- *
-
+*// Cost of 1 hour per school of coordinating with schools
+*replace staff = stateofficialwage/monthhrs*time_staff*schools                       if cost_cat == 2
 
 * ----------------------------------------------------------------- *
 * ------------------- COSTO TOTAL POR CATEGORÍA ------------------- *
 * ----------------------------------------------------------------- *
-drop outreach
-egen total_cost = rowtotal(implementation yearly_admin maintenance monitoring application teachers_eval transport supplies staff teachers_eval_gob)
+egen total_cost      = rowtotal(implementation yearly_admin maintenance outreach support monitoring application teachers_eval transport supplies staff data contact learning_gains learning_gains2 teachers_eval_gob)
 
 format total_cost %20.5f
 
@@ -340,9 +292,9 @@ collapse (sum) total_cost applicants, by(cost_cat year)
 
 drop if year==.
 sort cost_cat year applicants
-bys cost_cat: gen acc_tot = sum(total_cost)
+bys cost_cat: gen acc_tot   = sum(total_cost)
 bys cost_cat: gen acc_teach = sum(applicants)
-replace acc_tot = acc_tot/1000000
+replace acc_tot    = acc_tot/1000000
 replace total_cost = total_cost/1000000
 
 * ----------------------------------------------------------------- *
@@ -358,3 +310,9 @@ reshape wide total_cost@ applicants@, i(id) j(cost_cat)
 collapse (firstnm) total_cost1 applicants1 total_cost2, by(year)
 
 export excel "$pathData/output/teachers_pop_ec.xlsx", replace first(var)
+
+
+// agregar una sección en donde se diga explicitamente: dos columnas para un administrador
+// desagregación de costos: gráfico de barras explícitos vs implícitos por sistema
+// subir a la carpeta
+// herramienta para hacer cálculos, podría ser una pestaña extra

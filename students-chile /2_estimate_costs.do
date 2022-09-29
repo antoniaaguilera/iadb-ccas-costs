@@ -186,7 +186,7 @@ local cost_schools_pc      : di %3.2f staff[4]
 local cost_families_1      : di %5.4f application[1]/1000000
 local cost_families_pc     : di %3.2f application[4]
 
-local cost_total : di %5.4g `cost_admin_1'+`cost_admin_2'+`cost_admin_3'+`cost_admin_4'+`cost_admin_5'+`cost_schools_1'+`cost_families_1'
+local cost_total : di %5.4g `cost_admin_1'+`cost_admin_2'+`cost_admin_3'+`cost_admin_4'+`cost_admin_5'++`cost_admin_6'+`cost_schools_1'+`cost_families_1'
 local cost_total_perapp : di %3.2g `cost_admin_1_pc'+`cost_admin_2_pc'+`cost_admin_3_pc'+`cost_admin_4_pc'+`cost_admin_5_pc'+`cost_admin_6_pc'+`cost_schools_pc'+`cost_families_pc'
  di `cost_admin_1'
 
