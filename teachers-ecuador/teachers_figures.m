@@ -89,29 +89,30 @@ figure(1)
 year_proj  = table2array(teachers_proj(:,1)) ;
 cost1_proj = table2array(teachers_proj(:,2)) ;
 cost2_proj = table2array(teachers_proj(:,3)) ;
-cost3_proj = table2array(teachers_proj(:,4)) ;
+%cost3_proj = table2array(teachers_proj(:,4)) ;
 
 %cost3_proj = table2array(teachers_proj(:,3)) + table2array(teachers_proj(:,5)) ;
 
-%subplot(2, 1, 1)
+subplot(2, 1, 1)
 plot(year_proj, cost1_proj, 'LineWidth', 2, 'Color', Colors(pick(2),:))
 hold on
 plot(year_proj, cost2_proj, 'LineWidth', 2, 'Color', Colors(pick(1),:))
-plot(year_proj, cost3_proj,'LineWidth',  2, 'Color', Colors(pick(3),:))
+%plot(year_proj, cost3_proj,'LineWidth',  2, 'Color', Colors(pick(3),:))
 hold off
 xlim([1 10])
-%xlabel('Años desde la implementación')
-xlabel('Anos desde a implementação')
+xlabel('Años desde la implementación')
+%xlabel('Anos desde a implementação')
 ylabel('MU$D')
 ylim([0 7])
 grid on
-%title('Ahorro neto a 10 años')
-title('Economias nos primeiros dez anos')
-%subtitle('Asignación Coordinada de Docentes') 
-subtitle('Alocação centralizada de professores') 
-legend('Custos', 'Economias','Benefícios (simulação)', "Location","southoutside", "NumColumns", 3)
+title('Ahorro neto a 10 años')
+%title('Economias nos primeiros dez anos')
+subtitle('Asignación Coordinada de Docentes') 
+%subtitle('Alocação centralizada de professores') 
+%legend('Custos', 'Economias','Benefícios (simulação)', "Location","southoutside", "NumColumns", 3)
+legend('Costos', 'Ahorros', "Location","southoutside", "NumColumns", 3)
 box on 
-saveas(gcf,[figuresPath 'teachers_proj_portugues.png'])
+%saveas(gcf,[figuresPath 'teachers_proj_portugues.png'])
 
 %% Proyección de población
 teacher_pop = readtable([dataPath '/output/teachers_pop_ec.xlsx']);
@@ -120,26 +121,26 @@ total_cost1 = table2array(teacher_pop(:,2)) ;
 applicants  = table2array(teacher_pop(:,3)) ; 
 total_cost2 = table2array(teacher_pop(:,4)) ;
 
-%subplot(2, 1, 2)
+subplot(2, 1, 2)
 plot(applicants, total_cost1, 'LineWidth', 2, 'Color', Colors(pick(2),:))
 hold on
 plot(applicants, total_cost2, 'LineWidth', 2, 'Color', Colors(pick(1),:))
 hold off
 xlim([1000, 20000])
-%xlabel('Número de Postulantes')
-xlabel('Número de candidatos')
+xlabel('Número de Postulantes')
+%xlabel('Número de candidatos')
 ylabel('MU$D')
 grid on
-%title('Ahorro neto según cantidad de postulantes')
-title('Economias de acordo com o número de candidatos')
-%subtitle('Asignación Coordinada de Docentes') 
-subtitle('Alocação centralizada de professores') 
-%legend('Costos', 'Ahorros', "Location","southoutside", "NumColumns", 2); 
-legend('Custos', 'Ahorros', "Location","southoutside", "NumColumns", 2); 
+title('Ahorro neto según cantidad de postulantes')
+%title('Economias de acordo com o número de candidatos')
+subtitle('Asignación Coordinada de Docentes') 
+%subtitle('Alocação centralizada de professores') 
+legend('Costos', 'Ahorros', "Location","southoutside", "NumColumns", 2); 
+%legend('Custos', 'Ahorros', "Location","southoutside", "NumColumns", 2); 
 box on 
 
-saveas(gcf,[figuresPath 'teachers_pop_portugues.png'])
-%saveas(gcf,[figuresPath 'extended_analysis.png'])
+%saveas(gcf,[figuresPath 'teachers_pop_portugues.png'])
+saveas(gcf,[figuresPath 'extended_analysis.png'])
 
 %% Impacto Neto 
 cost4_proj = table2array(teachers_proj(:,3)) - table2array(teachers_proj(:,2)) ;

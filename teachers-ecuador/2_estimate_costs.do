@@ -34,7 +34,7 @@ local improved_score_vac = 0.011  //nº of position where teacher's score is imp
 local learning_effect    = 1/3    //impact of improving teachers as a fraction of the yearly learning in std dev
 local loss_income        = 0.025  //% of life loss income due to learning losses
 local discount_rate      = 0.03
-local wage_growth	     	 = 0.02
+local wage_growth	  	 = 0.02
 
 
 * ---------------------------------------------------------------- *
@@ -44,68 +44,101 @@ local wage_growth	     	 = 0.02
 replace implementation  = `infra_algorithm' if cost_cat == 1
 replace yearly_admin    = `process_admin'   if cost_cat == 1
 *replace  outreach       = `outreach'        if cost_cat == 1
-replace monitoring      = stateofficialwage/monthhrs*time_monitoring/4*schools if cost_cat == 1
+replace monitoring_dc   = stateofficialwage/monthhrs*time_monitoring/4*schools if cost_cat == 1
+replace monitoring_sc   = stateofficialwage/monthhrs*time_monitoring/4*schools if cost_cat == 1
 replace maintenance     = `maintenance'     if cost_cat == 1
 replace support         = `support_c'       if cost_cat == 1
 
-* -------------- *
-* -- TEACHERS -- *
-* -------------- *
+* ------------------ *
+* -- CENTRALIZADO -- *
+* ------------------ *
 
 // Opportunity cost of application time
-replace application = teacherwage/monthhrs_teacher*time_per_app*applicants if cost_cat == 1
+replace application_dc = teacherwage/monthhrs_teacher*time_per_app*applicants if cost_cat == 1
+replace application_sc = teacherwage/monthhrs_teacher*time_per_app*applicants if cost_cat == 1
 
 // Opportunity cost of evaluation time + cost of test
-replace teachers_eval = teacherwage/monthhrs_teacher*time_eval*applicants  if cost_cat == 1
+replace teachers_eval_dc = teacherwage/monthhrs_teacher*time_eval*applicants  if cost_cat == 1
+replace teachers_eval_sc = teacherwage/monthhrs_teacher*time_eval*applicants  if cost_cat == 1
 
 // Cost of supplies used in the application process
 *replace supplies = (supplycost*n_apps*applicants) if cost_cat == 1
 
 //Evaluation cost for the government
-replace teachers_eval_gob = evalcost*applicants if cost_cat == 1
+replace teachers_eval_gob_dc = evalcost*applicants if cost_cat == 1
+replace teachers_eval_gob_sc = evalcost*applicants if cost_cat == 1
 
 // Opportunity cost of transport time + fare
-replace transport = teacherwage/monthhrs_teacher*time_transport*applicants + (busfare*applicants) if cost_cat == 1
+replace transport_dc = teacherwage/monthhrs_teacher*time_transport*applicants + (busfare*applicants) if cost_cat == 1
+replace transport_sc = teacherwage/monthhrs_teacher*time_transport*applicants + (busfare*applicants) if cost_cat == 1
 
 // Cost of 1 hour per school of updating vacant seats in platform
-replace staff = stateofficialwage/monthhrs*time_staff*schools if cost_cat == 1
+replace staff_dc = stateofficialwage/monthhrs*time_staff*schools if cost_cat == 1
+replace staff_sc = stateofficialwage/monthhrs*time_staff*schools if cost_cat == 1
 
 // Cost of monitoring by authorities
-*replace monitoring = stateofficialwage/monthhrs*time_monitoring*schools if cost_cat == 1
+*replace monitoring_dc = stateofficialwage/monthhrs*time_monitoring*schools if cost_cat == 1
+*replace monitoring_sc = stateofficialwage/monthhrs*time_monitoring*schools if cost_cat == 1
 
 
 * ---------------------------------------------------------------- *
 * ------------- CATEGORÍA 2: Ahorros en Desperdicios ------------- *
 * ---------------------------------------------------------------- *
 
-* -------------- *
-* -- TEACHERS -- *
-* -------------- *
-
+* ------------------------- *
+* -- SEMI - CENTRALIZADO -- *
+* ------------------------- *
 // Time spent by families on application process
-replace application = (teacherwage)/monthhrs_teacher*time_per_app*n_apps*applicants  if cost_cat == 2
+replace application_sc = (teacherwage)/monthhrs_teacher*2*time_per_app*applicants  if cost_cat == 2
 
 // Opportunity cost of evaluation time for teachers
-replace teachers_eval = teacherwage/monthhrs_teacher*time_eval*n_apps*applicants     if cost_cat == 2
+replace teachers_eval_sc = teacherwage/monthhrs_teacher*time_eval*applicants     if cost_cat == 2
 
 //Evaluation cost for the government
-replace teachers_eval_gob = evalcost*n_apps*applicants if cost_cat == 2
+replace teachers_eval_gob_sc = evalcost*applicants if cost_cat == 2
 
 // Opportunity cost of transport time + fare
-replace transport = teacherwage/monthhrs_teacher*time_transport*n_apps*applicants + (busfare*applicants)*n_apps if cost_cat == 2
+replace transport_sc = teacherwage/monthhrs_teacher*time_transport*applicants + (busfare*applicants) if cost_cat == 2
 
 // Cost of supplies used in the application process
-replace supplies = (supplycost*n_apps*applicants) if cost_cat == 2
+replace supplies_sc = (supplycost*applicants) if cost_cat == 2
 
 // Cost of staff working during an application process
-replace staff = stateofficialwage/monthhrs*time_staff*n_apps*applicants + stateofficialwage/monthhrs*time_eval*applicants if cost_cat == 2
+replace staff_sc = stateofficialwage/monthhrs*time_staff*applicants + stateofficialwage/monthhrs*time_eval*applicants if cost_cat == 2
 
 // Cost of monitoring by authorities
-replace monitoring = stateofficialwage/monthhrs*time_monitoring*schools  if cost_cat == 2
+replace monitoring_sc = 3*stateofficialwage/monthhrs*time_monitoring*schools  if cost_cat == 2
 
-// Cost of 1 hour per school of coordinating with schools
-*replace staff = stateofficialwage/monthhrs*time_staff*schools if cost_cat == 2
+// Cost of staff working during an application process
+replace staff_sc = stateofficialwage/monthhrs*time_staff*applicants + stateofficialwage/monthhrs*time_eval*applicants if cost_cat == 2
 
+// Cost of school staff working during an application process
+replace staff2_sc = stateofficialwage/monthhrs*time_staff*schools if cost_cat == 2
+
+* ------------------------- *
+* ---- DESCENTRALIZADO ---- *
+* ------------------------- *
+
+// Time spent by families on application process
+replace application_dc = (teacherwage)/monthhrs_teacher*time_per_app*n_apps*applicants  if cost_cat == 2
+
+// Opportunity cost of evaluation time for teachers
+replace teachers_eval_dc = teacherwage/monthhrs_teacher*time_eval*n_apps*applicants     if cost_cat == 2
+
+//Evaluation cost for the government
+replace teachers_eval_gob_dc = evalcost*n_apps*applicants if cost_cat == 2
+
+// Opportunity cost of transport time + fare
+replace transport_dc = teacherwage/monthhrs_teacher*time_transport*n_apps*applicants + (busfare*applicants)*n_apps if cost_cat == 2
+
+// Cost of supplies used in the application process
+replace supplies_dc = (supplycost*n_apps*applicants) if cost_cat == 2
+
+// Cost of staff working during an application process
+replace staff_dc = stateofficialwage/monthhrs*time_staff*n_apps*applicants + stateofficialwage/monthhrs*time_eval*applicants if cost_cat == 2
+
+// Cost of monitoring by authorities
+replace monitoring_dc = stateofficialwage/monthhrs*time_monitoring*schools  if cost_cat == 2
 
 * ----------------------------------------------------------------- *
 * ------------- CATEGORÍA 3: Beneficio de la Política ------------- *
@@ -121,64 +154,90 @@ replace monitoring = stateofficialwage/monthhrs*time_monitoring*schools  if cost
 * ---- LEARNING GAINS ---- *
 replace learning_gains = `improved_score_vac'*enrollment*st_ratio*`learning_effect'*student_exp*gdp_percap if cost_cat == 3
 
+
 * ----------------------------------------------------------------- *
 * ---------------------- COSTO POR POSTULANTE --------------------- *
 * ----------------------------------------------------------------- *
 * --- per applicant --- *
-foreach vars in implementation yearly_admin maintenance outreach support monitoring application teachers_eval transport supplies staff data contact learning_gains learning_gains2 teachers_eval_gob {
-	replace `vars'=`vars'/applicants if cost_type=="per_applicant"
-	replace `vars'= 0 if `vars'==.
+foreach x in implementation yearly_admin maintenance outreach support data contact learning_gains learning_gains2 {
+	replace `x' =`x'/applicants if cost_type == "per_applicant"
+	replace `x' = 0 			if `x' 		 == .
+}
+
+* --- savings variables
+foreach x in application teachers_eval teachers_eval_gob transport supplies staff staff2 monitoring {
+	replace `x'_dc =`x'_dc/applicants if cost_type == "per_applicant"
+	replace `x'_dc = 0  		      if `x'_dc    == .
+	
+	replace `x'_sc =`x'_sc/applicants if cost_type == "per_applicant"
+	replace `x'_sc = 0 			      if `x'_sc    == .
 }
 
 * ----------------------------------------------------------------- *
 * ------------------- COSTO TOTAL POR CATEGORÍA ------------------- *
 * ----------------------------------------------------------------- *
 
-keep country applicant_type cost_cat cost_type applicants implementation yearly_admin maintenance outreach support monitoring application teachers_eval transport supplies staff data contact learning_gains learning_gains2 teachers_eval_gob
-order country applicant_type cost_cat cost_type applicants implementation yearly_admin maintenance outreach support monitoring application teachers_eval transport supplies staff data contact learning_gains learning_gains2 teachers_eval_gob
+keep  country applicant_type cost_cat cost_type applicants implementation yearly_admin maintenance outreach support* monitoring* application* teachers_eval* transport* supplies* staff* data* contact* learning_gains* learning_gains2* teachers_eval_gob*
+order country applicant_type cost_cat cost_type applicants implementation yearly_admin maintenance outreach support* monitoring* application* teachers_eval* transport* supplies* staff* data* contact* learning_gains* learning_gains2* teachers_eval_gob*
 
-gen admin = .
-gen schools = .
-gen families = .
+gen admin_dc    = .
+gen schools_dc  = .
+gen families_dc = .
+
+gen admin_sc    = .
+gen schools_sc  = .
+gen families_sc = .
 
 drop outreach
 
-* State: revisar esto!!!
-replace admin = implementation + yearly_admin + maintenance + support + monitoring + teachers_eval_gob if cost_cat == 1 //+ outreach if cost_cat == 1
-replace admin = monitoring  if cost_cat == 2
+* Administrador
+replace admin_dc = implementation + yearly_admin + maintenance + support + monitoring_dc + teachers_eval_gob_dc if cost_cat == 1 //+ outreach if cost_cat == 1
+replace admin_dc = monitoring_dc  if cost_cat == 2
+
+replace admin_sc = implementation + yearly_admin + maintenance + support + monitoring_sc + teachers_eval_gob_sc if cost_cat == 1 //+ outreach if cost_cat == 1
+replace admin_sc = monitoring_dc  + staff_sc + supplies_sc + teachers_eval_gob_sc if cost_cat == 2
 
 * Escuelas
-replace schools = staff                                    if cost_cat == 1
-replace schools = supplies + staff + teachers_eval_gob     if cost_cat == 2
+replace schools_dc = staff_dc                                          if cost_cat == 1
+replace schools_dc = supplies_dc + staff_dc + teachers_eval_gob_dc     if cost_cat == 2
+
+replace schools_sc = staff_sc                                          if cost_cat == 1
+replace schools_sc = staff2_sc 										   if cost_cat == 2
 
 * Familias
-replace families = application + teachers_eval             if cost_cat == 1
-replace families = application + transport + teachers_eval if cost_cat == 2
+replace families_dc = application_dc + teachers_eval_dc                if cost_cat == 1
+replace families_dc = application_dc + transport_dc + teachers_eval_dc if cost_cat == 2
+
+replace families_sc = application_sc + teachers_eval_sc                if cost_cat == 1
+replace families_sc = application_sc + transport_sc + teachers_eval_sc if cost_cat == 2
 
 * Total
-gen total_cost = schools + families + admin
+gen total_cost_dc = schools_dc + families_dc + admin_dc
+gen total_cost_sc = schools_sc + families_sc + admin_sc
 
-format total_cost %20.01f
+format total_cost_dc total_cost_sc %20.01f
 sort cost_type cost_cat
 
+replace cost_type = "pa" if cost_type == "per_applicant"
 preserve
 drop learning_gains*
-reshape wide implementation yearly_admin maintenance support monitoring application teachers_eval transport supplies staff data contact teachers_eval_gob total_cost admin schools families ,i(country cost_cat) j(cost_type) string
+reshape wide implementation yearly_admin maintenance support monitoring_dc monitoring_sc application_dc application_sc  teachers_eval_dc teachers_eval_sc transport_dc transport_sc supplies_dc supplies_sc staff_dc staff_sc staff2_dc staff2_sc data contact teachers_eval_gob_dc teachers_eval_gob_sc total_cost_dc total_cost_sc admin_dc admin_sc schools_dc schools_sc families_dc families_sc ,i(country cost_cat) j(cost_type) string
 
-reshape long @gross @per_applicant, i(cost_cat) j(cat) string
+reshape long @gross @pa, i(cost_cat) j(cat) string
 
-reshape wide gross per_applicant, i(country cat) j(cost_cat)
+reshape wide gross pa, i(country cat) j(cost_cat)
 drop *3
-rename (gross1 gross2 per_applicant1 per_applicant2)(cost_gross savings_gross cost_perapplicant savings_perapplicant)
-
+rename (gross1 gross2 pa1 pa2)(cost_gross savings_gross cost_perapplicant savings_perapplicant)
+stop 
 drop if cat == "admin" | cat =="schools" | cat == "families" | cat == "total_cost"
+inlist(cat, "admin_dc", "schools_dc", "families_dc", "total_cost_dc")|inlist(cat, "admin_sc", "schools_sc", "families_sc", "total_cost_sc")
 
 format cost_gross savings_gross %20.0f
 format cost_perapplicant savings_perapplicant %10.3f
 
 export excel "$pathData/output/cost_teachers_ec.xlsx", replace first(var)
 restore
-
+stop 
 * ----------------------------------------------------- *
 * ------------------- COSTS SUMMARY ------------------- *
 * ----------------------------------------------------- *

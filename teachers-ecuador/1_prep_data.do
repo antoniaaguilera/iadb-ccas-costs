@@ -127,9 +127,19 @@ gen dataperapp       = `datacost'
 gen contactperapp    = `contactcost'
 
 
-* --- inicializar variables
-foreach x in implementation yearly_admin maintenance outreach support monitoring application teachers_eval transport supplies staff data contact learning_gains learning_gains2 teachers_eval_gob {
+* --- cost variables
+foreach x in implementation yearly_admin maintenance outreach support data contact learning_gains learning_gains2 {
 	gen `x'=.
 }
 
+* --- savings variables
+foreach x in application teachers_eval teachers_eval_gob transport supplies staff staff2 monitoring {
+	gen `x'_dc = .
+	gen `x'_sc = .
+}
 export delimited  "$pathData/intermediate/for_cost_calculation.csv", replace
+
+
+
+
+

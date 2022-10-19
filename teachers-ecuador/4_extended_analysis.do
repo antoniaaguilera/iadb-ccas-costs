@@ -311,7 +311,7 @@ collapse (firstnm) total_cost1 applicants1 total_cost2, by(year)
 
 export excel "$pathData/output/teachers_pop_ec.xlsx", replace first(var)
 
-
+gen aux = (total_cost2>total_cost1)
 // agregar una sección en donde se diga explicitamente: dos columnas para un administrador
 // desagregación de costos: gráfico de barras explícitos vs implícitos por sistema
 // subir a la carpeta
