@@ -32,6 +32,9 @@ save `applicants', replace
 
 import delimited "$pathData/input/Application.csv", clear
 keep institution_id teacher_id program_id application_id
+// applications per applicant 
+bys teacher_id: egen applications = count(program_id)
+sum applications
 
 merge m:1 teacher_id using `applicants'
 keep if _m ==3 
