@@ -25,7 +25,7 @@ local infra_algorithm   = 247860 //perú
 local process_admin     = 50000  //ecuador
 *local outreach          = 248000 //outreach and information during the assignment process
 local monitoring_c      = 0 //monitoring and user support
-local support_c 	    	= applicants[1]*105/806 //3308635*0.14*105/806
+local support_c 	    = applicants[1]*105/806 //3308635*0.14*105/806
 local maintenance       = 7000 //annual maintenance of the system
 
 
@@ -41,13 +41,13 @@ local wage_growth	  	 = 0.02
 * -------------- CATEGORÍA 1: Costos de la Política -------------- *
 * ---------------------------------------------------------------- *
 
-replace implementation  = `infra_algorithm' if cost_cat == 1
-replace yearly_admin    = `process_admin'   if cost_cat == 1
+replace implementation  = `infra_algorithm'  if cost_cat == 1
+replace yearly_admin    = `process_admin'    if cost_cat == 1
 *replace  outreach       = `outreach'        if cost_cat == 1
 replace monitoring_dc   = stateofficialwage/monthhrs*time_monitoring/4*schools if cost_cat == 1
 replace monitoring_sc   = stateofficialwage/monthhrs*time_monitoring/4*schools if cost_cat == 1
-replace maintenance     = `maintenance'     if cost_cat == 1
-replace support         = `support_c'       if cost_cat == 1
+replace maintenance     = `maintenance'      if cost_cat == 1
+replace support         = `support_c'        if cost_cat == 1
 
 * ------------------ *
 * -- CENTRALIZADO -- *
@@ -68,9 +68,9 @@ replace teachers_eval_sc = teacherwage/monthhrs_teacher*time_eval*applicants  if
 replace teachers_eval_gob_dc = evalcost*applicants if cost_cat == 1
 replace teachers_eval_gob_sc = evalcost*applicants if cost_cat == 1
 
-// Opportunity cost of transport time + fare
-replace transport_dc = teacherwage/monthhrs_teacher*time_transport*applicants + (busfare*applicants) if cost_cat == 1
-replace transport_sc = teacherwage/monthhrs_teacher*time_transport*applicants + (busfare*applicants) if cost_cat == 1
+// Opportunity cost of transport time (evaluation) + fare
+replace transport_dc = teacherwage/monthhrs_teacher*time_transport_sc*applicants + (busfare*applicants) if cost_cat == 1
+replace transport_sc = teacherwage/monthhrs_teacher*time_transport_sc*applicants + (busfare*applicants) if cost_cat == 1
 
 // Cost of 1 hour per school of updating vacant seats in platform
 replace staff_dc = stateofficialwage/monthhrs*time_staff*schools if cost_cat == 1
@@ -97,8 +97,8 @@ replace teachers_eval_sc = teacherwage/monthhrs_teacher*time_eval*applicants    
 //Evaluation cost for the government
 replace teachers_eval_gob_sc = evalcost*applicants if cost_cat == 2
 
-// Opportunity cost of transport time + fare
-replace transport_sc = teacherwage/monthhrs_teacher*time_transport*applicants + (busfare*applicants) if cost_cat == 2
+// Opportunity cost of transport time (application) + transport time (evaluation) + fare
+replace transport_sc = teacherwage/monthhrs_teacher*time_transport_sc*applicants*2 + (busfare*applicants)*2 if cost_cat == 2
 
 // Cost of supplies used in the application process
 replace supplies_sc = (supplycost*applicants) if cost_cat == 2
@@ -128,8 +128,8 @@ replace teachers_eval_dc = teacherwage/monthhrs_teacher*time_eval*n_apps*applica
 //Evaluation cost for the government
 replace teachers_eval_gob_dc = evalcost*n_apps*applicants if cost_cat == 2
 
-// Opportunity cost of transport time + fare
-replace transport_dc = teacherwage/monthhrs_teacher*time_transport*n_apps*applicants + (busfare*applicants)*n_apps if cost_cat == 2
+// Opportunity cost of transport time (application) + transport time (evaluation) + fare
+replace transport_dc = teacherwage/monthhrs_teacher*time_transport_dc*applicants + teacherwage/monthhrs_teacher*time_transport_sc*applicants + (busfare*applicants)*(n_apps + 1) if cost_cat == 2
 
 // Cost of supplies used in the application process
 replace supplies_dc = (supplycost*n_apps*applicants) if cost_cat == 2
@@ -228,26 +228,26 @@ reshape long @gross @pa, i(cost_cat) j(cat) string
 reshape wide gross pa, i(country cat) j(cost_cat)
 drop *3
 rename (gross1 gross2 pa1 pa2)(cost_gross savings_gross cost_perapplicant savings_perapplicant)
-stop 
-drop if cat == "admin" | cat =="schools" | cat == "families" | cat == "total_cost"
-inlist(cat, "admin_dc", "schools_dc", "families_dc", "total_cost_dc")|inlist(cat, "admin_sc", "schools_sc", "families_sc", "total_cost_sc")
+  
+// drop if cat == "admin" | cat =="schools" | cat == "families" | cat == "total_cost"
+// inlist(cat, "admin_dc", "schools_dc", "families_dc", "total_cost_dc")|inlist(cat, "admin_sc", "schools_sc", "families_sc", "total_cost_sc")
 
 format cost_gross savings_gross %20.0f
 format cost_perapplicant savings_perapplicant %10.3f
 
 export excel "$pathData/output/cost_teachers_ec.xlsx", replace first(var)
 restore
-stop 
+
 * ----------------------------------------------------- *
 * ------------------- COSTS SUMMARY ------------------- *
 * ----------------------------------------------------- *
-
-local cost_admin           : di %5.4g admin[1]/1000000
-local cost_schools         : di %5.4g schools[1]/1000000
-local cost_families        : di %5.4g families[1]/1000000
-local cost_admin_perapp    : di %2.1g admin[4]
-local cost_schools_perapp  : di %2.1g schools[4]
-local cost_families_perapp : di %2.1g families[4]
+* --- resumen de costos
+local cost_admin           : di %5.4g admin_dc[1]/1000000
+local cost_schools         : di %5.4g schools_dc[1]/1000000
+local cost_families        : di %5.4g families_dc[1]/1000000
+local cost_admin_perapp    : di %2.1g admin_dc[4]
+local cost_schools_perapp  : di %2.1g schools_dc[4]
+local cost_families_perapp : di %2.1g families_dc[4]
 local cost_total           : di %5.4g `cost_admin'+`cost_schools'+`cost_families'
 local cost_total_perapp    : di %3.2g `cost_admin_perapp'+`cost_schools_perapp'+`cost_families_perapp'
 
@@ -269,29 +269,30 @@ file write costs_summary "\label{tab:costs_summary}"_n
 file write costs_summary "\end{table}"_n
 file close costs_summary
 
+* --- desglose de costos 
 local cost_admin_1         : di %6.3f implementation[1]/1000000
 *local cost_admin_2         : di %6.3f outreach[1]/1000000
 local cost_admin_3         : di %6.3f yearly_admin[1]/1000000
 local cost_admin_4         : di %6.3f maintenance[1]/1000000
 local cost_admin_5         : di %6.3f support[1]/1000000
-local cost_admin_6         : di %6.3f monitoring[1]/1000000
-local cost_admin_7         : di %6.3f teachers_eval_gob[1]/1000000
+local cost_admin_6         : di %6.3f monitoring_dc[1]/1000000
+local cost_admin_7         : di %6.3f teachers_eval_gob_dc[1]/1000000
 
 local cost_admin_1_pc      : di %3.2f implementation[4]
 *local cost_admin_2_pc      : di %3.2f outreach[4]
 local cost_admin_3_pc      : di %3.2f yearly_admin[4]
 local cost_admin_4_pc      : di %5.4f maintenance[4]
 local cost_admin_5_pc      : di %3.2f support[4]
-local cost_admin_6_pc      : di %5.4f monitoring[4]
-local cost_admin_7_pc      : di %5.4f teachers_eval_gob[4]
+local cost_admin_6_pc      : di %5.4f monitoring_dc[4]
+local cost_admin_7_pc      : di %5.4f teachers_eval_gob_dc[4]
 
-local cost_schools_1       : di %5.4f staff[1]/1000000
-local cost_schools_1_pc    : di %3.2f staff[4]
+local cost_schools_1       : di %5.4f staff_dc[1]/1000000
+local cost_schools_1_pc    : di %3.2f staff_dc[4]
 
-local cost_families_1      : di %5.4f application[1]/1000000
-local cost_families_2      : di %5.4f teachers_eval[1]/1000000
-local cost_families_1_pc   : di %3.2f application[4]
-local cost_families_2_pc   : di %3.2f teachers_eval[4]
+local cost_families_1      : di %5.4f application_dc[1]/1000000
+local cost_families_2      : di %5.4f teachers_eval_dc[1]/1000000
+local cost_families_1_pc   : di %3.2f application_dc[4]
+local cost_families_2_pc   : di %3.2f teachers_eval_dc[4]
 
 local cost_total : di %5.4g `cost_admin_1'+`cost_admin_3'+`cost_admin_4'+`cost_admin_5'+`cost_admin_6'+`cost_admin_7'+`cost_schools_1'+`cost_families_1'+`cost_families_2'
 local cost_total_perapp : di %3.2g `cost_admin_1_pc'+`cost_admin_3_pc'+`cost_admin_4_pc'+`cost_admin_5_pc'+`cost_admin_6_pc'+`cost_admin_7_pc'+`cost_schools_1_pc'+`cost_families_1_pc'+`cost_families_2_pc'
@@ -310,14 +311,14 @@ file write costs_summary2 "\multicolumn{1}{|c|}{\multirow{8}{*}{Administrador}} 
 file write costs_summary2 "\multicolumn{1}{|c|}{} & infraestructura tecnológica                      &\\$`cost_admin_1' & \\$`cost_admin_1_pc'  \\"_n
 file write costs_summary2 "\multicolumn{1}{|c|}{} & - Administración anual del proceso               &\\$`cost_admin_3' & \\$`cost_admin_3_pc'  \\"_n
 file write costs_summary2 "\multicolumn{1}{|c|}{} & - Mantención anual del proceso                   &\\$`cost_admin_4' & \\$`cost_admin_4_pc'  \\"_n
-file write costs_summary2 "\multicolumn{1}{|c|}{} & - Apoyo a las familias durante el proceso mediante & &\\"_n
+file write costs_summary2 "\multicolumn{1}{|c|}{} & - Apoyo a los postulantes durante el proceso mediante & &\\"_n
 file write costs_summary2 "\multicolumn{1}{|c|}{} & vía remota o mesas de apoyo                      &\\$`cost_admin_5' & \\$`cost_admin_5_pc'  \\"_n
-file write costs_summary2 "\multicolumn{1}{|c|}{} & - Monitoreo al nivel centralizado                &\\$`cost_admin_6' & \\$`cost_admin_6_pc'  \\\hline"_n
+file write costs_summary2 "\multicolumn{1}{|c|}{} & - Monitoreo al nivel centralizado                &\\$`cost_admin_6' & \\$`cost_admin_6_pc'  \\"_n
 file write costs_summary2 "\multicolumn{1}{|c|}{} & - Evaluación de docentes para la asignación      &\\$`cost_admin_7' & \\$`cost_admin_7_pc'  \\\hline"_n
 file write costs_summary2 "\multicolumn{1}{|c|}{\multirow{2}{*}{Escuelas}} & - Publicación de vacantes e información && \\"_n
-file write costs_summary2 "\multicolumn{1}{|c|}{} &relacionada utilizando la plataforma digital &\\$`cost_schools_1' & \\$`cost_schools_pc'  \\\hline"_n
+file write costs_summary2 "\multicolumn{1}{|c|}{} &relacionada utilizando la plataforma digital &\\$`cost_schools_1' & \\$`cost_schools_1_pc'  \\\hline"_n
 file write costs_summary2 "\multicolumn{1}{|c|}{\multirow{2}{*}{Familias}} & Creación de perfil, entrega de antedecentes, búsqueda de  &  & \\"_n
-file write costs_summary2 "\multicolumn{1}{|c|}{} &  vacantes y postulación a escuelas utilizando plataforma digital &\\$`cost_families_1' & \\$`cost_families_1_pc' \\\hline"_n
+file write costs_summary2 "\multicolumn{1}{|c|}{} &  vacantes y postulación a escuelas utilizando plataforma digital &\\$`cost_families_1' & \\$`cost_families_1_pc' \\"_n
 file write costs_summary2 "\multicolumn{1}{|c|}{} & - Evaluación de docentes para la asignación &\\$`cost_families_2' & \\$`cost_families_2_pc' \\\hline"_n
 file write costs_summary2 "\rowcolor{black!25}  \multicolumn{2}{|c|}{\textbf{Total}} & \\$`cost_total' & \\$`cost_total_perapp' \\\hline"_n
 file write costs_summary2 "\end{tabular} "_n
@@ -331,68 +332,138 @@ file close costs_summary2
 * ------------------ SAVINGS SUMMARY ------------------ *
 * ----------------------------------------------------- *
 
-local savings_admin           : di %5.3f admin[2]/1000000
-local savings_schools         : di %5.3f schools[2]/1000000
-local savings_families        : di %5.2f families[2]/1000000
-local savings_admin_perapp    : di %5.3g admin[5]
-local savings_schools_perapp  : di %5.3g schools[5]
-local savings_families_perapp : di %5.3g families[5]
-local savings_total : di %5.4g `savings_admin'+`savings_schools'+`savings_families'
-local savings_total_perapp : di %3.2g `savings_admin_perapp'+`savings_schools_perapp'+`savings_families_perapp'
+* --- resumen de ahorros 
+local savings_admin_dc           : di %5.3f admin_dc[2]/1000000
+local savings_schools_dc         : di %5.3f schools_dc[2]/1000000
+local savings_families_dc        : di %5.2f families_dc[2]/1000000
+local savings_admin_perapp_dc    : di %5.3g admin_dc[5]
+local savings_schools_perapp_dc  : di %5.3g schools_dc[5]
+local savings_families_perapp_dc : di %5.3g families_dc[5]
+local savings_total_dc           : di %5.4g `savings_admin_dc'+`savings_schools_dc'+`savings_families_dc'
+local savings_total_perapp_dc    : di %3.2g `savings_admin_perapp_dc'+`savings_schools_perapp_dc'+`savings_families_perapp_dc'
+
+local savings_admin_sc           : di %5.3f admin_sc[2]/1000000
+local savings_schools_sc         : di %5.3f schools_sc[2]/1000000
+local savings_families_sc        : di %5.2f families_sc[2]/1000000
+local savings_admin_perapp_sc    : di %5.3g admin_sc[5]
+local savings_schools_perapp_sc  : di %5.3g schools_sc[5]
+local savings_families_perapp_sc : di %5.3g families_sc[5]
+local savings_total_sc           : di %5.4g `savings_admin_sc'+`savings_schools_sc'+`savings_families_sc'
+local savings_total_perapp_sc    : di %3.2g `savings_admin_perapp_sc'+`savings_schools_perapp_sc'+`savings_families_perapp_sc'
 
 file open  savings_summary using "$tables/savings_summary.tex", write replace
 file write savings_summary "\begin{table}[ht!]" _n
 file write savings_summary "\centering"_n
-file write savings_summary "\caption{Resumen de ahorros de la implementación de un Sistema de Asignación Centralizada de Docentes.}"_n
-file write savings_summary "\begin{tabular}{|l|cc|} \hline \hline"_n
+file write savings_summary "\caption{Resumen de ahorros de la implementación de un Sistema de Asignación Centralizada de Docentes, desde un Sistema Descentralizado y desde uno Semi-Centralizado.}"_n
+file write savings_summary "\begin{tabular}{|l|cc|cc|} \hline \hline"_n
 file write savings_summary "\hline"_n
-file write savings_summary "\rowcolor{black!25}\multicolumn{3}{|c|}{\textbf{Ahorros}}\\\hline"_n
-file write savings_summary "\rowcolor{black!25} \textbf{Grupo} & \textbf{Total (MUSD)} & \textbf{Por postulante (USD)} \\\hline"_n
-file write savings_summary "Administrador & \\$`savings_admin'     & \\$`savings_admin_perapp' \\\hline"_n
-file write savings_summary "Escuela       & \\$`savings_schools'   & \\$`savings_schools_perapp' \\\hline"_n
-file write savings_summary "Familias      & \\$`savings_families'  & \\$`savings_families_perapp'\\\hline"_n
-file write savings_summary "\rowcolor{black!25}\textbf{Total} &  \textbf{\\$`savings_total'} & \textbf{\\$`savings_total_perapp'} \\\hline"_n
+file write savings_summary "\rowcolor{black!25}& \multicolumn{2}{|c|}{\textbf{Descentralizado}}                                         &\multicolumn{2}{|c|}{\textbf{Semi-Centralizado}} \\ \hline"_n
+file write savings_summary "\rowcolor{black!25} \textbf{Grupo} & \textbf{Total (MUSD)}          & \textbf{Por postulante (USD)}         & \textbf{Total (MUSD)}          & \textbf{Por postulante (USD)}         \\ \hline"_n
+file write savings_summary "Administrador                      & \\$`savings_admin_dc'          & \\$`savings_admin_perapp_dc'          & \\$`savings_admin_sc'          & \\$`savings_admin_perapp_sc'          \\ \hline"_n
+file write savings_summary "Escuela                            & \\$`savings_schools_dc'        & \\$`savings_schools_perapp_dc'        & \\$`savings_schools_sc'        & \\$`savings_schools_perapp_sc'        \\ \hline"_n
+file write savings_summary "Docentes                           & \\$`savings_families_dc'       & \\$`savings_families_perapp_dc'       & \\$`savings_families_sc'       & \\$`savings_families_perapp_sc'       \\ \hline"_n
+file write savings_summary "\rowcolor{black!25}\textbf{Total}  & \textbf{\\$`savings_total_dc'} & \textbf{\\$`savings_total_perapp_dc'} & \textbf{\\$`savings_total_sc'} & \textbf{\\$`savings_total_perapp_sc'} \\ \hline"_n
 file write savings_summary "\end{tabular}"_n
 file write savings_summary "\label{tab:savings_summary}"_n
 file write savings_summary "\end{table}"_n
 file close savings_summary
 
 
-local savings_admin_1         : di %6.3f monitoring[2]/1000000
-local savings_admin_1_pc      : di %5.3f monitoring[5]
-local savings_schools_1       : di %5.3f supplies[2]/1000000+staff[2]/1000000
-local savings_schools_2       : di %5.3f teachers_eval_gob[2]/1000000
-local savings_schools_1_pc    : di %5.3f supplies[5] + staff[5]
-local savings_schools_2_pc    : di %5.3f teachers_eval_gob[5]
-local savings_families_1      : di %5.3f application[2]/1000000 + transport[2]/1000000
-local savings_families_2      : di %5.3f teachers_eval[2]/1000000
-local savings_families_1_pc   : di %5.3f application[5] + transport[5]
-local savings_families_2_pc   : di %5.3f teachers_eval[5]
+* --- desglose de ahorros
+local savings_admin_1_dc         : di %6.3f monitoring_dc[2]/1000000
+local savings_admin_1_pc_dc      : di %5.3f monitoring_dc[5]
+local savings_schools_1_dc       : di %6.3f supplies_dc[2]/1000000+staff_dc[2]/1000000
+local savings_schools_2_dc       : di %6.3f teachers_eval_gob_dc[2]/1000000
+local savings_schools_1_pc_dc    : di %5.3f supplies_dc[5] + staff_dc[5]
+local savings_schools_2_pc_dc    : di %5.3f teachers_eval_gob_dc[5]
+local savings_families_1_dc      : di %6.3f application_dc[2]/1000000 + transport_dc[2]/1000000
+local savings_families_2_dc      : di %6.3f teachers_eval_dc[2]/1000000
+local savings_families_1_pc_dc   : di %5.3f application_dc[5] + transport_dc[5]
+local savings_families_2_pc_dc   : di %5.3f teachers_eval_dc[5]
 
-local savings_total : di %5.2f `savings_admin_1'+ `savings_schools_1' +  `savings_schools_2' + `savings_families_1' + `savings_families_2'
-local savings_total_perapp : di %5.2f `savings_admin_1_pc'+ `savings_schools_1_pc' +`savings_schools_2_pc' + `savings_families_1_pc' + `savings_families_2_pc'
+
+local savings_total_dc           : di %5.2f `savings_admin_1_dc' + `savings_schools_1_dc' +  `savings_schools_2_dc' + `savings_families_1_dc' + `savings_families_2_dc'
+local savings_total_perapp_dc    : di %5.2f `savings_admin_1_pc_dc'+ `savings_schools_1_pc_dc' +`savings_schools_2_pc_dc' + `savings_families_1_pc_dc' + `savings_families_2_pc_dc'
+
+local savings_admin_1_sc         : di %6.3f (staff_sc[2] + supplies_sc[2])/1000000
+local savings_admin_1_pc_sc      : di %5.3f (staff_sc[5] + supplies_sc[5])
+local savings_admin_2_sc         : di %6.3f monitoring_sc[2]/1000000
+local savings_admin_2_pc_sc      : di %5.3f monitoring_sc[5]
+local savings_admin_3_sc         : di %6.3f teachers_eval_gob_sc[2]/1000000
+local savings_admin_3_pc_sc      : di %5.3f teachers_eval_gob_sc[5]
+local savings_schools_1_sc       : di %6.3f staff2_sc[2]/1000000
+local savings_schools_1_pc_sc    : di %5.3f staff2_sc[5]
+local savings_families_1_sc      : di %6.3f application_sc[2]/1000000 + transport_sc[2]/1000000
+local savings_families_2_sc      : di %6.3f teachers_eval_sc[2]/1000000
+local savings_families_1_pc_sc   : di %5.3f application_sc[5] + transport_sc[5]
+local savings_families_2_pc_sc   : di %5.3f teachers_eval_sc[5]
+
+local savings_total_sc           : di %5.2f `savings_admin_1_sc'    + `savings_admin_2_sc'    + `savings_admin_3_sc'    + `savings_schools_1_sc'    + `savings_families_1_sc'    + `savings_families_2_sc'
+local savings_total_perapp_sc    : di %5.2f `savings_admin_1_pc_sc' + `savings_admin_2_pc_sc' + `savings_admin_3_pc_sc' + `savings_schools_1_pc_sc' + `savings_families_1_pc_sc' + `savings_families_2_pc_sc'
 
 file open  savings_summary2 using "$tables/savings_items.tex", write replace
 file write savings_summary2 "\begin{table}[ht!]" _n
 file write savings_summary2 "\centering"_n
-file write savings_summary2 "\caption{Ahorros de la implementación de un Sistema de Asignación Centralizada de Docentes.}"_n
+file write savings_summary2 "\caption{Ahorros de la implementación de un Sistema de Asignación Centralizada de Docentes desde un Sistema Descentralizado y desde un Sistema Semi-Centralizado.}"_n
 file write savings_summary2 "\resizebox{17cm}{!}{"_n
-file write savings_summary2 "\begin{tabular}{|c|l|c|c|}"_n
+file write savings_summary2 "\begin{tabular}{|c|l|c|c|c|c|}"_n
 file write savings_summary2 "\hline"_n
-file write savings_summary2 "\rowcolor{black!25} & \multicolumn{1}{|c|}{\textbf{AHORROS}} & Total & Por postulante\\"_n
-file write savings_summary2 "\rowcolor{black!25} & \multicolumn{1}{|c|}{Descripción}  & (MUSD) & (USD) \\\hline"_n
-file write savings_summary2 "\multicolumn{1}{|c|}{\multirow{2}{*}{Administrador}} & - Monitoreo del proceso a nivel de cada & &\\"_n
-file write savings_summary2 "\multicolumn{1}{|c|}{} & escuela realizado por funcionarios públicos    &\\$`savings_admin_1' & \\$`savings_admin_1_pc'  \\\hline"_n
-file write savings_summary2 "\multicolumn{1}{|c|}{\multirow{3}{*}{Escuelas}} & - Personal de la escuela y materiales empleados && \\"_n
-file write savings_summary2 "\multicolumn{1}{|c|}{} & en el proceso de postulación, revisión de antecedentes,  & &  \\"_n
-file write savings_summary2 "\multicolumn{1}{|c|}{} & asignación y comunicación de los resultados &\\$`savings_schools_1' & \\$`savings_schools_1_pc'  \\\hline"_n
-file write savings_summary2 "\multicolumn{1}{|c|}{} & - Evaluación docente para la asignación &\\$`savings_schools_2' & \\$`savings_schools_2_pc'  \\\hline"_n
-file write savings_summary2 "\multicolumn{1}{|c|}{\multirow{2}{*}{Familias}} & - Postulación presencial en 3 escuelas   &  & \\"_n
-file write savings_summary2 "\multicolumn{1}{|c|}{} &  incluyendo costos de transporte &\\$`savings_families_1' & \\$`savings_families_1_pc' \\\hline"_n
-file write savings_summary2 "\multicolumn{1}{|c|}{} & - Evaluación docente para la asignación &\\$`savings_families_2' & \\$`savings_families_2_pc' \\\hline"_n
-file write savings_summary2 "\rowcolor{black!25} \multicolumn{2}{|c|}{\textbf{Total}} & \\$`savings_total' & \\$`savings_total_perapp' \\\hline"_n
+file write savings_summary2 "\rowcolor{black!25}                                  & \multicolumn{1}{|c|}{\textbf{AHORROS}} & \multicolumn{2}{|c|}{\textbf{Descentralizado}}                  &\multicolumn{2}{|c|}{\textbf{Semi-Centralizado}}\\"_n
+file write savings_summary2 "\rowcolor{black!25}                & \multicolumn{1}{|c|}{Descripción}                  & \multicolumn{1}{|c|}{ Total (MUSD)}           &  \multicolumn{1}{|c|}{Por Postulante (USD)}      & \multicolumn{1}{|c|}{ Total (MUSD)}     &  \multicolumn{1}{|c|}{Por Postulante (USD)}  \\\hline"_n
+file write savings_summary2 "\multicolumn{1}{|c|}{\multirow{5}{*}{Administrador}} & - Personal y materiales empleados && && \\"_n
+file write savings_summary2 "\multicolumn{1}{|c|}{} & en el proceso de postulación, revisión de antecedentes,   & & & &  \\"_n
+file write savings_summary2 "\multicolumn{1}{|c|}{} & asignación y comunicación de los resultados.              & - & -    &\\$`savings_admin_1_sc'     & \\$`savings_admin_1_pc_sc'     \\ "_n
+file write savings_summary2 "\multicolumn{1}{|c|}{} & - Monitoreo del proceso                                   & - & -    &\\$`savings_admin_2_sc'     & \\$`savings_admin_2_pc_sc'     \\ "_n
+file write savings_summary2 "\multicolumn{1}{|c|}{} & - Evaluación docente para la asignación                   & - & -    &\\$`savings_admin_3_sc'     & \\$`savings_admin_3_pc_sc'     \\ \hline"_n
+file write savings_summary2 "\multicolumn{1}{|c|}{\multirow{5}{*}{Escuelas}} & - Personal de la escuela y materiales empleados && && \\"_n
+file write savings_summary2 "\multicolumn{1}{|c|}{} & en el proceso de postulación, revisión de antecedentes,  & & & &  \\"_n
+file write savings_summary2 "\multicolumn{1}{|c|}{} & asignación y comunicación de los resultados                        &\\$`savings_schools_1_dc' & \\$`savings_schools_1_pc_dc' & -  & -   \\ "_n
+file write savings_summary2 "\multicolumn{1}{|c|}{} & - Evaluación docente para la asignación                            &\\$`savings_schools_2_dc' & \\$`savings_schools_2_pc_dc' & -  & -   \\ "_n
+file write savings_summary2 "\multicolumn{1}{|c|}{} & - Estimación de vacantes docentes y comunicación al administrador  & -                        & -                            &\\$`savings_schools_1_sc' & \\$`savings_schools_1_pc_sc'  \\ \hline"_n
+file write savings_summary2 "\multicolumn{1}{|c|}{\multirow{3}{*}{Familias}} & - Postulación presencial en 3 escuelas   &  & &  & \\"_n
+file write savings_summary2 "\multicolumn{1}{|c|}{} &  incluyendo costos de transporte                &\\$`savings_families_1_dc' & \\$`savings_families_1_pc_dc' &\\$`savings_families_1_sc' & \\$`savings_families_1_pc_sc'  \\ "_n
+file write savings_summary2 "\multicolumn{1}{|c|}{} & - Evaluación docente para la asignación         &\\$`savings_families_2_dc' & \\$`savings_families_2_pc_dc' &\\$`savings_families_2_sc' & \\$`savings_families_2_pc_sc'  \\ "_n
+file write savings_summary2 "\rowcolor{black!25} \multicolumn{2}{|c|}{\textbf{Total}}                 &\\$`savings_total_dc'      & \\$`savings_total_perapp_dc'  &\\$`savings_total_sc'      & \\$`savings_total_perapp_sc'   \\ "_n
 file write savings_summary2 "\end{tabular} "_n
 file write savings_summary2 "}"_n
 file write savings_summary2 "\label{tab:savings_long}"_n
 file write savings_summary2 "\end{table} "_n
 file close savings_summary2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
